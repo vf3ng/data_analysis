@@ -1,0 +1,363 @@
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
+Traceback (most recent call last):
+  File "get_submit_user.py", line 43, in <module>
+    get_data(i)
+  File "<auto generated wrapper of get_data() function>", line 2, in get_data
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 349, in new_func
+    try: return func(*args, **kwargs)
+  File "get_submit_user.py", line 28, in get_data
+    for contact in user.contact:
+  File "<auto generated wrapper of __iter__() function>", line 2, in __iter__
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2362, in __iter__
+    return iter(wrapper.copy())
+  File "<auto generated wrapper of copy() function>", line 2, in copy
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 65, in cut_traceback
+    return func(*args, **kwargs)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2258, in copy
+    return wrapper._attr_.copy(wrapper._obj_)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 2012, in copy
+    if setdata is None or not setdata.is_fully_loaded: setdata = attr.load(obj)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1941, in load
+    items = rentity._fetch_objects(cursor, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3188, in _fetch_objects
+    real_entity_subclass, pkval, avdict = entity._parse_row_(row, attr_offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 3218, in _parse_row_
+    avdict[attr] = attr.parse_value(row, offsets)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1322, in parse_value
+    val = attr.validate(row[offset], None, attr.entity, from_db=True)
+  File "/usr/local/lib/python2.7/dist-packages/pony/orm/core.py", line 1604, in validate
+    if obj is None: throw(ValueError, 'Attribute %s is required' % attr)
+  File "/usr/local/lib/python2.7/dist-packages/pony/utils.py", line 103, in throw
+    raise exc
+ValueError: Attribute ContactInfo.name is required
