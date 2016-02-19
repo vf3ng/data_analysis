@@ -4,44 +4,17 @@ from Crypto.Cipher import AES
 import base64,hashlib
 from AesCrypter import AesCrypter
 from data_user import *
-import time
+import time,datetime
 import requests
+import random
 
 #secret = 'cf3221f2a63c800a'
-md5_key = '0415143ee7edbb4de5cbd1126a38e809'
-#app_key='offline_test'
-#url_1 = ['http://111.204.113.194:8094/websearch/blacklist']
-
-secret = '7f5611fd3d559592'
-app_key = 'taikang'
-#url_1 = 'http://tianji.rong360.com/websearch/blacklist'
-url_list = [
-            #'http://111.204.113.194:8094/websearch/blacklist',
-            'http://tianji.rong360.com/websearch/blacklist',
-            'http://tianji.rong360.com/ZhongZhiCheng/blacklist',
-            'http://tianji.rong360.com/Fahai/LoanBlacklist',
-            'http://tianji.rong360.com/rong360/Blacklist',
-            'http://tianji.rong360.com/huifa/LoanBlacklist',
-            'http://tianji.rong360.com/agentb/blacklist'
-           ]
 db.generate_mapping(create_tables = True)
-#def pkcs7unpadding(data):
-#    lengt = len(data)
-#    unpadding = ord(data[lengt - 1])
-#    return data[0:lengt-unpadding]
 
-def json_http_post(url, data, retry=3, timeout=200):
-            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-            req = urllib2.Request(url=url, headers=headers)
-            #打开url读取内容并返回结果
-            para_dict = {}
-            para_dict["app_id"] = app_key
-            para_dict["data"] = data
-            post_data = urllib.urlencode(para_dict)
-            #print post_data,"********************************post_data"
-            rsp = urllib2.urlopen(req,post_data)
-            page = rsp.read()
-            return page
+userName = V_PA025_QHCS_DCS
+userPassword = weblogic1
+key = SK803@!QLF-D25WEDA5E52DA
+
 class BlacklistCal(object):
       def __init__(self,file):
           f = open(file,"r")
@@ -58,6 +31,30 @@ class BlacklistCal(object):
           self.temp_good = 0
           self.response = []
           self.hit_dict = {}
+      def get_header(self):
+          random.seed(time.time())
+          transNo = random.randint(10000,99999)
+          now = datetime..datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %H:%M:%S")
+          transDate = now
+          authDate = now
+          header = {
+             "orgCode":"10000000",
+             "chnlId":"qhcs-dcs",
+             "transNo":"",
+             "transDate":"",
+             "authCode":"CRT001A2",
+             "authDate":"",
+          }
+          header["transNo"] = transNo
+          header["transDate"] = transDate
+          header["authDate"] = authDate
+          return header
+      def get_sign(self):
+      def make_data(self,data_param):
+          data = {
+              
+          }
+              
       def init_dict(self):
           for i in self.lines:
               id,check_status,code = i.split()
@@ -83,11 +80,9 @@ class BlacklistCal(object):
           except Exception,e:
               print e
       @db_session
-      def get_response(self):
+      def get_response(self,url,data):
           a = open("result","w")
-          for url in url_list:
-              print url
-              for key,val in self.user_dict.items():
+          for key,val in self.user_dict.items():
                   user = DataUser.get(user_id=key)
                   data = {"app_id":app_key,"secret":secret,"idNumber":user.id_card_num.encode("utf-8"),"phone":user.phone_num.encode("utf-8"),"name":user.name.encode("utf-8")}
                   s = sorted(data.items(), key=lambda d:d[0])
@@ -107,11 +102,8 @@ class BlacklistCal(object):
                   self.count(s,key)
                   self.response.append(s)
                   a.write(key+' '+s+' '+ url+'\n')
-                  time.sleep(0.5)
-              print self.temp_good,self.temp_only,self.temp_count,url
-              self.temp_good = 0
-              self.temp_only = 0
-              self.temp_count = 0
+                  time.sleep(0.1)
+          print self.temp_good,self.temp_only,self.temp_count,url
           print self.total,self.hit_good,self.hit_only,self.hit_count
           a.close()
           return self.hit_dict
