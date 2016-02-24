@@ -9,6 +9,17 @@ import random
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pk
 from Crypto.Hash import SHA
+import ssl
+
+from requests.adapters import HTTPAdapter
+from urllib3.poolmanager import PoolManager
+
+class Ssl3HttpAdapter(HTTPAdapter):
+    """"Transport adapter" that allows us to use SSLv3."""
+    def init_poolmanager(self, connections, maxsize, block=False):
+        self.poolmanager = PoolManager(
+            num_pools=connections, maxsize=maxsize,
+            block=block, ssl_version=ssl.PROTOCOL_SSLv3)
 #db.generate_mapping(create_tables = True)
 
 userName = 'V_PA025_QHCS_DCS'
@@ -17,6 +28,7 @@ key = 'SK803@!QLF-D25WEDA5E52DA'
 
 privatekey=RSA.importKey(open('private.pem.key','r').read())
 test_url = 'https://test-qhzx.pingan.com.cn:5443/do/dmz/query/blacklist/v1/MSC8004'
+
 
 class TempUser(object):
       def __init__(self,id,status,code,name,id_card_num,phone,home_addr,work_addr):
@@ -120,9 +132,12 @@ class BlacklistCal(object):
               str_data = json.dumps(json_data,ensure_ascii=False)
               print str_data
               http_headers = {'content-type': 'application/json;charset=utf-8','content-length':len(str_data)}
-              res = requests.post(url, data=str_data, headers=http_headers ,cert='credoo_ssl.crt',verify=True)
-              res = d.decrypt_3des(res)
-              a.write(user.id+' '+res+'\n')
+              s = requests.Session()
+              s.mount('https://',Ssl3HttpAdapter())
+              res = s.post(url, data=str_data, headers=http_headers ,cert='credoo_ssl.crt',verify=True)
+              print res.text
+              #res = d.decrypt_3des(res.text)
+              a.write(user.id+' '+res.text.encode("utf-8")+'\n')
               time.sleep(0.1)
               break
           a.close()
