@@ -70,13 +70,13 @@ class BlacklistCal(object):
           return header
 
       def get_sign(self,data):
-          temp = []
-          keys=data.keys()
-          keys.sort()
-          for v in keys:
-              temp.append(str(data[v]))
-          str1=''.join(temp)
-          h=SHA.new(str1)
+          #temp = []
+          #keys=data.keys()
+          #keys.sort()
+          #for v in keys:
+          #    temp.append(str(data[v]))
+          #str1=''.join(temp)
+          h=SHA.new(data)
           signer = pk.new(privatekey)
           signn=signer.sign(h)
           signn=base64.b64encode(signn)
@@ -118,12 +118,15 @@ class BlacklistCal(object):
       def get_response(self,url):
           a = open("result","w")
           for user in self.user_list:
+              print user.id
               header = self.get_header()
               data = self.make_data(user)
-              sign = self.get_sign(data)
-              securityInfo = self.make_security_info(sign)
+              #sign = self.get_sign(data)
+              #securityInfo = self.make_security_info(sign)
               d = DesCrypter()
               encrypt_data = d.encrypt_3des(json.dumps(data,ensure_ascii=False))
+              sign = self.get_sign(encrypt_data)
+              securityInfo = self.make_security_info(sign)
               json_data = {
                   "header":header,
                   "busiData":encrypt_data,
@@ -134,51 +137,14 @@ class BlacklistCal(object):
               http_headers = {'content-type': 'application/json;charset=utf-8','content-length':len(str_data)}
               s = requests.Session()
               s.mount('https://',Ssl3HttpAdapter())
-              res = s.post(url, data=str_data, headers=http_headers ,cert='credoo_ssl.crt',verify=True)
+              res = s.post(url, data=str_data, headers=http_headers ,cert='./credoo_ssl.crt',verify=True)
               print res.text
               #res = d.decrypt_3des(res.text)
-              a.write(user.id+' '+res.text.encode("utf-8")+'\n')
-              time.sleep(0.1)
+              #a.write(user.id+' '+res.text.encode("utf-8")+'\n')
+              #time.sleep(0.1)
               break
           a.close()
 
-b = BlacklistCal("user_data")
-print b.get_response(test_url)
-'''
 if __name__ == '__main__':
-    data = {"app_id":app_key,"secret":secret,"idNumber":"511181199306050015","phone":"15608071193","name":"leon"}
-    s = sorted(data.items(), key=lambda d:d[0])
-    print s
-    str1 = ''
-    for i in s:
-        str1+= i[0]+'='+i[1]
-    str1 += md5_key
-    m = hashlib.md5()
-    m.update(str1)
-    token = m.hexdigest()
-    data.setdefault("token",token)
-    str_data = json.dumps(data)
-    print str_data
-    aes = AesCrypter(secret)
-    b64 = aes.encrypt(str_data)
-    print b64
-    #mode=AES.MODE_CBC
-    #iv = 16 * '\x00'
-    #encryptor=AES.new(secret)
-    #padding = '\0'
-    #pad_it = lambda s: s+(16 - len(s)%16)*padding
-    #data2 = encryptor.encrypt(pad_it(str(str_data)))
-    #print data2,type(data2)
-    #b64 = base64.b64encode(data2)
-    #print b64,"-----------------base64"
-    res = json_http_post(url_1, b64)
-    #res = 'AaOG8V7mLs08J7TmQ/xKqy3WhnLaG2dyH3PtnYzCUoE4oDsiWwBlgfXJn9Xeqh2YLzCvtCHM/DB3u7Zke+EiFpOryS67qDMRWV/cJjefXjAaQ+p7JfO6lbsP99UWta4iqNw74P2qO4ATSNaGvLoe3oPqt+9eOwADOuQDKwiJetc='
-    print res,"-----------------response"
-    #res = base64.b64decode(res)
-    #decryptor = AES.new(secret,mode,iv)
-    #r = decryptor.decrypt(res)
-    #print r,'==================='
-    #unpad = lambda s : s[0:-ord(s[-1])]
-    #s = unpad(r)
-    s = aes.decrypt(res)
-    print s'''
+    b = BlacklistCal("user_data")
+    print b.get_response(test_url)
