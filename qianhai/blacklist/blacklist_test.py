@@ -27,7 +27,9 @@ userPassword = 'weblogic1'
 key = 'SK803@!QLF-D25WEDA5E52DA'
 
 privatekey=RSA.importKey(open('private.pem.key','r').read())
-test_url = 'https://test-qhzx.pingan.com.cn:5443/do/dmz/query/blacklist/v1/MSC8004'
+publickey=RSA.importKey(open('publickey','r').read())
+
+test_url = 'https://test-qhzx.pingan.com.cn:5443/do/dmz/query/blacklist/v1/MSC0000'
 
 
 class TempUser(object):
@@ -115,8 +117,22 @@ class BlacklistCal(object):
                   id,check_status,code,name,id_card_num,phone,home_addr,work_addr = list1
                   self.user_list.append(TempUser(str(id),str(check_status),str(code),str(name),str(id_card_num),str(phone),str(home_addr),str(work_addr)))
 
-      def get_response(self,url):
-          a = open("result","w")
+      def verify_sign(self,busi_data,sign):
+          print busi_data,'\n',sign
+          print publickey,privatekey
+          #signn=base64.b64decode(sign)
+          h=SHA.new(busi_data)
+          verifier = pk.new(publickey)
+          if verifier.verify(SHA.new(busi_data), sign):
+              print "verify data ok"
+              return True
+          else:
+              print "verify data failed"
+              return False
+
+      def get_response(self,url,output):
+          a = open(output,"w")
+          s = requests.Session()
           for user in self.user_list:
               print user.id
               header = self.get_header()
@@ -135,16 +151,18 @@ class BlacklistCal(object):
               str_data = json.dumps(json_data,ensure_ascii=False)
               print str_data
               http_headers = {'content-type': 'application/json;charset=utf-8','content-length':len(str_data)}
-              s = requests.Session()
               s.mount('https://',Ssl3HttpAdapter())
-              res = s.post(url, data=str_data, headers=http_headers ,cert='./credoo_ssl.crt',verify=True)
-              print res.text
-              #res = d.decrypt_3des(res.text)
-              #a.write(user.id+' '+res.text.encode("utf-8")+'\n')
+              res = s.post(url, data=str_data, headers=http_headers ,verify=False)
+              print res.content
+              res_data = json.loads(res.content)
+              res = d.decrypt_3des(res_data["busiData"])
+              print self.verify_sign(res_data["busiData"],res_data["securityInfo"]["signatureValue"])
+              print res
+              a.write(user.id+' '+res+'\n')
               #time.sleep(0.1)
               break
           a.close()
 
 if __name__ == '__main__':
     b = BlacklistCal("user_data")
-    print b.get_response(test_url)
+    print b.get_response(test_url,"result1")
