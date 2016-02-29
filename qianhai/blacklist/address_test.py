@@ -153,3 +153,4 @@ class BlacklistCal(object):
 if __name__ == '__main__':
     b = BlacklistCal("user_data")
     b.get_response(test_url)
+    print 'hello'
