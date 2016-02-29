@@ -29,7 +29,7 @@ key = 'SK803@!QLF-D25WEDA5E52DA'
 privatekey=RSA.importKey(open('private.pem.key','r').read())
 publickey=RSA.importKey(open('publickey','r').read())
 
-test_url = 'https://test-qhzx.pingan.com.cn:5443/do/dmz/query/blacklist/v1/MSC0000'
+test_url = 'https://test-qhzx.pingan.com.cn:5443/do/dmz/query/blacklist/v1/MSC8004'
 
 
 class TempUser(object):
@@ -96,13 +96,17 @@ class BlacklistCal(object):
       def make_data(self,user):  
           data = {
               "batchNo":self.batch_num,
-              "idNo":user.id_card_num,
-              "idType":'0',
-              "reasonNo":'01',
-              "name":user.name,
-              "entityAuthCode":user.id,
-              "entityAuthDate":datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %H:%M:%S"),
-              "seqNo":user.id
+              "records":[
+              {
+                 "idNo":user.id_card_num,
+                 "idType":'0',
+                 "reasonCode":'01',
+                 "name":user.name,
+                 "entityAuthCode":user.id,
+                 "entityAuthDate":datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %H:%M:%S"),
+                 "seqNo":user.id
+              },
+            ]
           }
           return data
               
@@ -118,9 +122,8 @@ class BlacklistCal(object):
                   self.user_list.append(TempUser(str(id),str(check_status),str(code),str(name),str(id_card_num),str(phone),str(home_addr),str(work_addr)))
 
       def verify_sign(self,busi_data,sign):
-          print busi_data,'\n',sign
           print publickey,privatekey
-          #signn=base64.b64decode(sign)
+          signn=base64.b64decode(sign)
           h=SHA.new(busi_data)
           verifier = pk.new(publickey)
           if verifier.verify(SHA.new(busi_data), sign):
@@ -141,6 +144,7 @@ class BlacklistCal(object):
               #securityInfo = self.make_security_info(sign)
               d = DesCrypter()
               encrypt_data = d.encrypt_3des(json.dumps(data,ensure_ascii=False))
+              print d.decrypt_3des(encrypt_data)
               sign = self.get_sign(encrypt_data)
               securityInfo = self.make_security_info(sign)
               json_data = {
@@ -153,7 +157,7 @@ class BlacklistCal(object):
               http_headers = {'content-type': 'application/json;charset=utf-8','content-length':len(str_data)}
               s.mount('https://',Ssl3HttpAdapter())
               res = s.post(url, data=str_data, headers=http_headers ,verify=False)
-              print res.content
+              print res.content,"____________________all"
               res_data = json.loads(res.content)
               res = d.decrypt_3des(res_data["busiData"])
               print self.verify_sign(res_data["busiData"],res_data["securityInfo"]["signatureValue"])
@@ -165,4 +169,4 @@ class BlacklistCal(object):
 
 if __name__ == '__main__':
     b = BlacklistCal("user_data")
-    print b.get_response(test_url,"result1")
+    b.get_response(test_url,"result1")
