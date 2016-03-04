@@ -2,7 +2,7 @@
 from M2Crypto.EVP import Cipher
 import base64
 
-key = 'SK803@!QLF-D25WEDA5E52DA'
+key = 's_SYYW1REVSROBAR51GLPEZF'
 
 class DesCrypter(object):
     def __init__(self):
