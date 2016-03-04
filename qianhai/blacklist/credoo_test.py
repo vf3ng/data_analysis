@@ -1,5 +1,5 @@
 #coding=utf-8
-test_url = 'https://test-qhzx.pingan.com.cn:5443/do/dmz/query/credoo/v1/MSC8005'
+test_url = 'https://qhzx-dcs.pingan.com.cn/do/dmz/query/credoo/v1/MSC8005'
 
 from blacklist_test import *
 
@@ -63,4 +63,4 @@ class CredooCal(BlacklistCal):
 
 if __name__ == '__main__':
     b = CredooCal("user_data")
-    b.get_response(test_url,'credoo_result')
+    b.write_data(test_url,"blacklist_data_0")

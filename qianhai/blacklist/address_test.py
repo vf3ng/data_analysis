@@ -1,6 +1,6 @@
 #coding=utf-8
 from blacklist_test import *
-test_url = 'https://test-qhzx.pingan.com.cn:5443/do/dmz/query/address/v1/MSC8007'
+test_url = 'https://qhzx-dcs.pingan.com.cn/do/dmz/query/address/v1/MSC8007'
 
 
 
@@ -55,4 +55,4 @@ class AddressCal(BlacklistCal):
 
 if __name__ == '__main__':
     b = AddressCal("user_data")
-    b.get_response(test_url,'address_result')
+    b.write_data(test_url,"blacklist_data_0")
