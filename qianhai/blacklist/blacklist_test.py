@@ -109,6 +109,27 @@ class BlacklistCal(object):
             ]
           }
           return data
+
+      #new
+      def make_data_many(self,user_list):
+          data = {
+              "batchNo":self.batch_num,
+              "records":[]
+          }
+          for user in user_list:
+              new_data = {
+                 "idNo":user.id_card_num,
+                 "idType":'0',
+                 "reasonCode":'01',
+                 "name":user.name,
+                 "entityAuthCode":user.id,
+                 "entityAuthDate":datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %H:%M:%S"),
+                 "seqNo":user.id
+              }
+              data['records'].append(new_data)
+          return data
+
+
               
       def init_user(self):
           for i in self.lines:
@@ -136,35 +157,32 @@ class BlacklistCal(object):
       def get_response(self,url,output):
           a = open(output,"w")
           s = requests.Session()
-          for user in self.user_list:
-              print user.id
-              header = self.get_header()
-              data = self.make_data(user)
-              #sign = self.get_sign(data)
-              #securityInfo = self.make_security_info(sign)
-              d = DesCrypter()
-              encrypt_data = d.encrypt_3des(json.dumps(data,ensure_ascii=False))
-              print d.decrypt_3des(encrypt_data)
-              sign = self.get_sign(encrypt_data)
-              securityInfo = self.make_security_info(sign)
-              json_data = {
-                  "header":header,
-                  "busiData":encrypt_data,
-                  "securityInfo":securityInfo,
-              }
-              str_data = json.dumps(json_data,ensure_ascii=False)
-              print str_data
-              http_headers = {'content-type': 'application/json;charset=utf-8','content-length':len(str_data)}
-              s.mount('https://',Ssl3HttpAdapter())
-              res = s.post(url, data=str_data, headers=http_headers ,verify=False)
-              print res.content,"____________________all"
-              res_data = json.loads(res.content)
-              res = d.decrypt_3des(res_data["busiData"])
-              print self.verify_sign(res_data["busiData"],res_data["securityInfo"]["signatureValue"])
-              print res
-              a.write(user.id+' '+res+'\n')
-              #time.sleep(0.1)
-              break
+          header = self.get_header()
+          data = self.make_data_many(user_list)
+          #sign = self.get_sign(data)
+          #securityInfo = self.make_security_info(sign)
+          d = DesCrypter()
+          encrypt_data = d.encrypt_3des(json.dumps(data,ensure_ascii=False))
+          print d.decrypt_3des(encrypt_data)
+          sign = self.get_sign(encrypt_data)
+          securityInfo = self.make_security_info(sign)
+          json_data = {
+              "header":header,
+              "busiData":encrypt_data,
+              "securityInfo":securityInfo,
+          }
+          str_data = json.dumps(json_data,ensure_ascii=False)
+          print str_data
+          http_headers = {'content-type': 'application/json;charset=utf-8','content-length':len(str_data)}
+          s.mount('https://',Ssl3HttpAdapter())
+          res = s.post(url, data=str_data, headers=http_headers ,verify=False)
+          print res.content,"____________________all"
+          res_data = json.loads(res.content)
+          res = d.decrypt_3des(res_data["busiData"])
+          print self.verify_sign(res_data["busiData"],res_data["securityInfo"]["signatureValue"])
+          print res
+          a.write(user.id+' '+res+'\n')
+          #time.sleep(0.1)
           a.close()
 
 if __name__ == '__main__':
