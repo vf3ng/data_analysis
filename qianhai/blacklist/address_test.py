@@ -25,6 +25,32 @@ class AddressCal(BlacklistCal):
               ]
           }
           return data
+
+
+      def make_data_many(self,user_list):
+          data = {
+              "batchNo":self.batch_num,
+              "records":[]
+          }
+          for user in user_list:
+              new_data = {
+                      "idNo":user.id_card_num,
+                      "idType":'0',
+                      "reasonNo":'01',
+                      "name":user.name,
+                      "entityAuthCode":user.id,
+                      "entityAuthDate":datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %H:%M:%S"),
+                      "seqNo":user.id,
+                      "mobileNo":'13458629551',
+                      "address":'四川省成都市',
+                      "email":'421833082@qq.com',
+                      "qqNo":'421833990'
+              }
+              data['records'].append(new_data)
+          return data
+
+
+
               
 
 if __name__ == '__main__':
