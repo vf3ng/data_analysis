@@ -22,14 +22,14 @@ class Ssl3HttpAdapter(HTTPAdapter):
             block=block, ssl_version=ssl.PROTOCOL_SSLv3)
 #db.generate_mapping(create_tables = True)
 
-userName = 'V_PA025_QHCS_DCS'
-userPassword = 'weblogic1'
-key = 'SK803@!QLF-D25WEDA5E52DA'
+userName = 'boyacxOper'
+userPassword = 'nCM_5Q06'
+#key = 's_SYYW1REVSROBAR51GLPEZF'
 
-privatekey=RSA.importKey(open('private.pem.key','r').read())
-publickey=RSA.importKey(open('publickey','r').read())
+privatekey=RSA.importKey(open('privatekey.key','r').read())
+publickey=RSA.importKey(open('publickey.key','r').read())
 
-test_url = 'https://test-qhzx.pingan.com.cn:5443/do/dmz/query/blacklist/v1/MSC8004'
+test_url = 'https://qhzx-dcs.pingan.com.cn/do/dmz/query/blacklist/v1/MSC8004'
 
 
 class TempUser(object):
