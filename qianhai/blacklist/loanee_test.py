@@ -1,6 +1,6 @@
 #coding=utf-8
 from blacklist_test import *
-test_url = 'https://test-qhzx.pingan.com.cn:5443/do/dmz/query/loanee/v1/MSC8037'
+test_url = 'https://qhzx-dcs.pingan.com.cn/do/dmz/query/loanee/v1/MSC8037'
 
 class LoaneeCal(BlacklistCal):
       def make_data(self,user):  
@@ -43,4 +43,4 @@ class LoaneeCal(BlacklistCal):
 
 if __name__ == '__main__':
     b = LoaneeCal("user_data")
-    b.get_response(test_url,'loanee_result')
+    b.write_data(test_url,"blacklist_data_0")
