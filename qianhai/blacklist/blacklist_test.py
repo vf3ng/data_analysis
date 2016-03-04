@@ -27,7 +27,7 @@ userPassword = 'nCM_5Q06'
 #key = 's_SYYW1REVSROBAR51GLPEZF'
 
 privatekey=RSA.importKey(open('privatekey.key','r').read())
-publickey=RSA.importKey(open('publickey.key','r').read())
+publickey=RSA.importKey(open('publickey.pem','r').read())
 
 test_url = 'https://qhzx-dcs.pingan.com.cn/do/dmz/query/blacklist/v1/MSC8004'
 
@@ -59,11 +59,11 @@ class BlacklistCal(object):
           transDate = now
           authDate = now
           header = {
-             "orgCode":"10000000",
-             "chnlId":"qhcs-dcs",
+             "orgCode":"440301112284023",
+             "chnlId":"boyacx",
              "transNo":"",
              "transDate":"",
-             "authCode":"CRT001A2",
+             "authCode":"CNS0383XX",
              "authDate":"",
           }
           header["transNo"] = transNo
@@ -154,11 +154,10 @@ class BlacklistCal(object):
               print "verify data failed"
               return False
 
-      def get_response(self,url,output):
-          a = open(output,"w")
+      def get_response(self,url,user):
           s = requests.Session()
           header = self.get_header()
-          data = self.make_data_many(user_list)
+          data = self.make_data(user)
           #sign = self.get_sign(data)
           #securityInfo = self.make_security_info(sign)
           d = DesCrypter()
@@ -181,10 +180,17 @@ class BlacklistCal(object):
           res = d.decrypt_3des(res_data["busiData"])
           print self.verify_sign(res_data["busiData"],res_data["securityInfo"]["signatureValue"])
           print res
-          a.write(user.id+' '+res+'\n')
-          #time.sleep(0.1)
-          a.close()
+          time.sleep(0.1)
+          return res
+
+      def write_data(self,url,output):
+          f = open(output,'w')
+          for u in self.user_list:
+              data = self.get_response(url,u)
+              f.write(json.dumps(data,ensure_ascii=False)+'\n')
+          f.close()
+
 
 if __name__ == '__main__':
     b = BlacklistCal("user_data")
-    b.get_response(test_url,"result1")
+    b.write_data(test_url,"blacklist_data_0")
