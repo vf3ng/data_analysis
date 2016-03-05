@@ -63,4 +63,4 @@ class CredooCal(BlacklistCal):
 
 if __name__ == '__main__':
     b = CredooCal("user_data")
-    b.write_data(test_url,"blacklist_data_0")
+    b.write_data(test_url,"credoo_data")

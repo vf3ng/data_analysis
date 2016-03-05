@@ -43,4 +43,4 @@ class LoaneeCal(BlacklistCal):
 
 if __name__ == '__main__':
     b = LoaneeCal("user_data")
-    b.write_data(test_url,"blacklist_data_0")
+    b.write_data(test_url,"loanee_data")

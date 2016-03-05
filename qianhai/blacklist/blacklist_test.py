@@ -162,7 +162,6 @@ class BlacklistCal(object):
           #securityInfo = self.make_security_info(sign)
           d = DesCrypter()
           encrypt_data = d.encrypt_3des(json.dumps(data,ensure_ascii=False))
-          print d.decrypt_3des(encrypt_data)
           sign = self.get_sign(encrypt_data)
           securityInfo = self.make_security_info(sign)
           json_data = {
@@ -171,15 +170,11 @@ class BlacklistCal(object):
               "securityInfo":securityInfo,
           }
           str_data = json.dumps(json_data,ensure_ascii=False)
-          print str_data
           http_headers = {'content-type': 'application/json;charset=utf-8','content-length':len(str_data)}
           s.mount('https://',Ssl3HttpAdapter())
           res = s.post(url, data=str_data, headers=http_headers ,verify=False)
-          print res.content,"____________________all"
           res_data = json.loads(res.content)
           res = d.decrypt_3des(res_data["busiData"])
-          print self.verify_sign(res_data["busiData"],res_data["securityInfo"]["signatureValue"])
-          print res
           time.sleep(0.1)
           return res
 
