@@ -21,22 +21,22 @@ class Data(object):
     
     def show(self):
         prefix = self.name.split('_')[0]
+        dataframe = self.get_data()
         try:
-            dataframe = self.get_data()
             sub_dataframe = dataframe[dataframe['dataStatus']!='']
             pct = len(sub_dataframe)*1.0/len(dataframe)
             print "%d,%d"%(len(sub_dataframe),len(dataframe))
             print "%s : %.2f%%"%(prefix,pct*100)
         except:
             print "%s length:%d" %(prefix,len(self.data))
-
+            print prefix,":",dataframe
 
 if __name__=='__main__':
-    data_blacklist = Data('blacklist_data_0')
-    data_blacklist.show()
+    #data_blacklist = Data('blacklist_data_0')
+    #data_blacklist.show()
     data_address = Data('address_data')
     data_address.show()
-    data_credoo = Data('credoo_data')
-    data_credoo.show()
-    data_loanee = Data('loanee_data')
-    data_loanee.show()
+    #data_credoo = Data('credoo_data')
+    #data_credoo.show()
+    #data_loanee = Data('loanee_data')
+    #data_loanee.show()
