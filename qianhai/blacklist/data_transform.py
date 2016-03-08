@@ -42,43 +42,74 @@ class Data(object):
         return data
 
     def show_blacklist(self):
-        result = pd.DataFrame([],index = [u'命中',u'误伤',u'单独'],columns = [u'个数',u'覆盖率'])
-        data = self.get_merged_data()
-        data['new'] = data[2].replace([str(i) for i in range(-11,-1)],99)
-        result.ix[0][0] = len(data[data['dataStatus']==u'1'])
-        result.ix[1][0] = len(data[(data['dataStatus']==u'1')&(data[1]=='3')])
-        result.ix[2][0] = len(data[(data['dataStatus']==u'1')&(data['new']!=99)])
-        result[u'覆盖率']=result[u'个数']/200.0
-        print result
+        if self.name.split('_')[0]=='blacklist':
+            result = pd.DataFrame([],index = [u'命中',u'误伤',u'单独'],columns = [u'个数',u'覆盖率'])
+            data = self.get_merged_data()
+            data['new'] = data[2].replace([str(i) for i in range(-11,-1)],99)
+            result.ix[0][0] = len(data[data['dataStatus']==u'1'])
+            result.ix[1][0] = len(data[(data['dataStatus']==u'1')&(data[1]=='3')])
+            result.ix[2][0] = len(data[(data['dataStatus']==u'1')&(data['new']!=99)])
+            result[u'覆盖率']=result[u'个数']/200.0
+            print result
 
     def show_address(self):
-        pass
+        if self.name.split('_')[0]=='address':
+            data = self.get_merged_data()
+            data.columns = [str(i) for i in data.columns]
+            data['newprice'] = data['houseArodAvgPrice'].replace(['',u'0.0'],99).map(float)
+            newdata = data[data['newprice']!=99.0]
+            #newdata['pricefield'] = pd.cut(newdata['newprice'],6)
+            #temp = newdata.pivot_table('0',index = 'pricefield',columns = '1',margins=True,aggfunc=[len,max]) 
+            temp = newdata.groupby([pd.cut(newdata['newprice'],6),'1'])
+            result = temp.apply(len).unstack().fillna(0)
+            result['a'] = result['3']+result['5']
+            del result['3']
+            result.columns = [u'命中',u'总数']
+            result[u'命中率'] = result[u'命中']/result[u'总数']
+            result.index.name = u'价格区间'
+            result.to_excel('address.xlsx')
+            print result
 
     def show_credoo(self):
-        pass
+        if self.name.split('_')[0]=='credoo':
+            b = self.get_data()
+            a = pd.read_table('user_new',header = None)
+            data = pd.merge(a,b,left_on=3,right_on='idNo')
+            data.columns = [str(i) for i in data.columns]
+            data['newscore'] = data['credooScore'].replace([''],99).map(float)
+            newdata = data[data['newscore']!=99.0]
+            temp = newdata.groupby([pd.cut(newdata['newscore'],6),'5'])
+            result = temp.apply(len).unstack().fillna(0)
+            result['a'] = result[3]+result[5]
+            del result[3]
+            result.columns = [u'命中',u'总数']
+            result[u'命中率'] = result[u'命中']/result[u'总数']
+            result.index.name = u'分数区间'
+            result.to_excel('credoo.xlsx')
+            print result
+
 
     def show_loanee(self):
-        data = self.get_merged_data()
-        data['amount_new']=data['amount'].replace([unicode(i) for i in range(8,15)],99)
-        a = pd.DataFrame([],index=[u'%s次'%i for i in range(0,8)]+[u'8次以上'],columns=[u'数量',u'黑名单命中数',u'比率'])
-        for i in range(0,8):
-            temp = data[data['amount']==unicode(i)]
-            if len(temp)!=0:
-                a.ix[i][0] = len(temp)
-                a.ix[i][1] = len(temp[temp[1]==u'5'])
-        temp = data[data['amount_new']==99]
-        a.ix[u'8次以上'][0] = len(temp)
-        a.ix[u'8次以上'][1] = len(temp[temp[1]==u'5'])
-        a[u'比率'] = a[u'黑名单命中数']*1.0/a[u'数量']
-        a.to_csv('amount_test.csv',encoding = 'gb2312')
-        print a 
+        if self.name.split('_')[0]=='loanee':
+            data = self.get_merged_data()
+            data['amount_new']=data['amount'].replace([unicode(i) for i in range(8,15)],'8次以上')
+            data['amount_new']=data['amount_new'].replace(['','None'],u'0')
+            data.columns = [str(i) for i in data.columns]
+            temp = data.pivot_table('0', index = 'amount_new', columns = '1', aggfunc = len, margins = True)
+            del temp['3']
+            temp[u'比率'] = temp['5']/temp['All']
+            temp.columns = [u'黑名单命中数',u'数量',u'比率']
+            temp.index.name = u'申请次数取值'
+            temp = temp.drop('All',axis = 0)
+            temp.to_excel('amount.xlsx')
+            print temp 
 
 if __name__=='__main__':
     #data_blacklist = Data('blacklist_data_0')
     #data_blacklist.show_blacklist()
     #data_address = Data('address_data')
-    #data_address.show()
-    #data_credoo = Data('credoo_data')
-    #data_credoo.show()
-    data_loanee = Data('loanee_data')
-    data_loanee.show_loanee()
+    #data_address.show_address()
+    data_credoo = Data('credoo_data')
+    data_credoo.show_credoo()
+    #data_loanee = Data('loanee_data')
+    #data_loanee.show_loanee()
