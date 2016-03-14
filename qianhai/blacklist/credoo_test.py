@@ -1,8 +1,8 @@
 #coding=utf-8
-test_url = 'https://qhzx-dcs.pingan.com.cn/do/dmz/query/credoo/v1/MSC8005'
 
 from blacklist_test import *
 
+test_url = 'https://qhzx-dcs.pingan.com.cn/do/dmz/query/credoo/v1/MSC8005'
 class CredooCal(BlacklistCal):
       def make_data(self,user):  
           data = {
@@ -16,16 +16,16 @@ class CredooCal(BlacklistCal):
                   "entityAuthCode":user.id,
                   "entityAuthDate":datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %H:%M:%S"),
                   "seqNo":user.id,
-	              "mobileNo":'1358629551',
-	              "cardNo":'111111222222',
-	              "email":'421833098@qq.com',
-	              "weiboNo":'421222833@qq.com',
-	              "qqNo":'421833098',
-	              "weixinNo":'412933098',
-	              "taobaoNo":'123123123',
-	              "jdNo":'42183330',
-	              "amazonNo":'asdasd',
-	              "yhdNo":'asdasd'
+	              "mobileNo":user.phone,
+	              "cardNo":'',
+	              "email":'',
+	              "weiboNo":'',
+	              "qqNo":'',
+	              "weixinNo":'',
+	              "taobaoNo":'',
+	              "jdNo":'',
+	              "amazonNo":'',
+	              "yhdNo":''
                   }
               ]
           }

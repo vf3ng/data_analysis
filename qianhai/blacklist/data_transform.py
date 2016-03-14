@@ -60,13 +60,14 @@ class Data(object):
             newdata = data[data['newprice']!=99.0]
             #newdata['pricefield'] = pd.cut(newdata['newprice'],6)
             #temp = newdata.pivot_table('0',index = 'pricefield',columns = '1',margins=True,aggfunc=[len,max]) 
-            temp = newdata.groupby([pd.cut(newdata['newprice'],6),'1'])
+            temp = newdata.groupby([pd.cut(newdata['newprice'],[0,3000,5000,7000,10000,15000]).replace([None],'(15000, )'),'1'])
             result = temp.apply(len).unstack().fillna(0)
             result['a'] = result['3']+result['5']
             del result['3']
             result.columns = [u'命中',u'总数']
             result[u'命中率'] = result[u'命中']/result[u'总数']
             result.index.name = u'价格区间'
+            result = result.ix[['(0, 3000]','(3000, 5000]','(5000, 7000]','(7000, 10000]','(10000, 15000]','(15000, )']]
             result.to_excel('address.xlsx')
             print result
 
@@ -78,7 +79,7 @@ class Data(object):
             data.columns = [str(i) for i in data.columns]
             data['newscore'] = data['credooScore'].replace([''],99).map(float)
             newdata = data[data['newscore']!=99.0]
-            temp = newdata.groupby([pd.cut(newdata['newscore'],6),'5'])
+            temp = newdata.groupby([pd.cut(newdata['newscore'],[300,550,600,650,700],right = False).replace([None],'[700, )'),'5'])
             result = temp.apply(len).unstack().fillna(0)
             result['a'] = result[3]+result[5]
             del result[3]
