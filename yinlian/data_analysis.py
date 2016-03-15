@@ -15,7 +15,7 @@ class Data(object):
     #data_type = ['pass','deny'],  interval_value = [X,X,X,...]
     def data_process(self, data, filename, indexname, interval = False, interval_value = None):
         if interval and interval_value:
-            cut_interval = pd.cut(data[indexname], interval_value)
+            cut_interval = pd.cut(data[indexname], interval_value).replace([None],'null')
             result = pd.DataFrame(data.groupby(cut_interval).apply(len))
             result.to_excel('%s_%s.xlsx'%(indexname,filename))
             print result
