@@ -13,15 +13,15 @@ class Data(object):
         return data_deny, data_pass
 
     #data_type = ['pass','deny'],  interval_value = [X,X,X,...]
-    def data_process(self, data, indexname, interval = False, interval_value = None):
+    def data_process(self, data, filename, indexname, interval = False, interval_value = None):
         if interval and interval_value:
             cut_interval = pd.cut(data[indexname], interval_value)
             result = pd.DataFrame(data.groupby(cut_interval).apply(len))
-            result.to_excel('%s.xlsx'%indexname)
+            result.to_excel('%s_%s.xlsx'%(indexname,filename))
             print result
         elif interval == False:
             result = pd.DataFrame(data.groupby(indexname).apply(len))
-            result.to_excel('%s.xlsx'%indexname)
+            result.to_excel('%s_%s.xlsx'%(indexname,filename))
             print result
         else:
             pass
@@ -31,5 +31,5 @@ if __name__ == '__main__':
     data_deny, data_pass = a.get_excel_data()
     index = data_deny.columns[5:]
     print index
-    a.data_process(data_deny,u'套现模型得分',interval = True,interval_value = [0,200,400,600,800,1000])
-    a.data_process(data_deny,u'卡状态得分表')
+    a.data_process(data_deny,'deny',u'套现模型得分',interval = True,interval_value = [0,200,400,600,800,1000])
+    a.data_process(data_deny,'deny',u'卡状态得分表')
