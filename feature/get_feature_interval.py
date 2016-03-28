@@ -53,7 +53,7 @@ def get_interval(table_name, feature, num = 2, user_id = 'user_id',bins = None):
     cut = pd.cut(data, bins, right = False)
     #cut = pd.qcut(data,num)
     print feature,':'
-    print cut.value_counts(),'\n'
+    print cut.value_counts().sort_index(),'\n'
 
 def get_unused_time_interval(num_count, num_time):
     data = get_compute_data('blacklist', 'user_id')
@@ -104,16 +104,16 @@ if __name__ == '__main__':
     data['day_average_call_count'] = data['call_count']/data['sustained_days']
     data = data['day_average_call_count'].dropna()
     #bins = get_average_interval(data, 10)
-    cut = pd.cut(data, [0,2.8,4.3,5.9,7.4,9,11,14,18,25,500], right =False)
+    cut = pd.cut(data, [0,3,4,6,7,9,11,14,18,25,500], right =False)
     print 'day_average_call_count : '
-    print cut.value_counts(),'\n'
+    print cut.value_counts().sort_index(),'\n'
     #关机时长
     get_unused_time_interval(2,5)
     #电商特征
     get_interval('ebusiness_feature','total_order_count',6)
     get_interval('ebusiness_feature','total_price',bins = [0,70,415,1200,2300,4000,6300,9600,14900,27800,664000])
     get_interval('ebusiness_feature','used_days',bins = [0,35,105,190,300,410,550,690,980,1500,3600])
-    get_interval('ebusiness_feature','price_per_day',bins = [0,0.6,2.4,4.4,6.8,9.5,13.4,18.4,25.6,43.3,1700])
+    get_interval('ebusiness_feature','price_per_day',bins = [0,1,3,5,7,9,13,18,25,43,1700])
     #地址特征
     get_interval('getuiresult','home_offset',user_id = 'owner_id',bins = [0,140,300,660,1600,3500,7200,16400,58200,315000,4000000])
     get_interval('getuiresult','work_offset',user_id = 'owner_id',bins = [0,230,780,1700,3300,5200,8200,14600,38100,269600,4000000])
