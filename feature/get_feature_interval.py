@@ -24,7 +24,7 @@ def get_compute_data(table_name, user_id):
                    from %s 
                    group by %s) as t2
              on t1.%s = t2.%s and t1.version = t2.max_version
-             limit 5000;
+             limit 5000,5000;
           ''' %(table_name, user_id, table_name, user_id, user_id, user_id)
     data = get_sql_data(sql, conn)
     
@@ -39,15 +39,17 @@ def get_average_interval(series, cut_num):
     index = 0
     for i in range(cut_num-1):
         index += num
-        result.append(a[index]+0.1)
-    result.append(a[-1]+0.1)
+        result.append(a[index])
+    result.append(a[-1]+1)
+    result = [(i//100+1)*100 if i >= 1000 else i for i in result]
     return result
 
 #以进单用户均等来划分区间
-def get_interval(table_name, feature, num, user_id = 'user_id'):
+def get_interval(table_name, feature, num = 2, user_id = 'user_id',bins = None):
     data = get_compute_data(table_name, user_id)
     data = data[feature].replace(['',-1],np.nan).dropna()
-    bins = get_average_interval(data,num)
+    if bins == None:
+        bins = get_average_interval(data,num)
     cut = pd.cut(data, bins, right = False)
     #cut = pd.qcut(data,num)
     print feature,':'
@@ -93,30 +95,30 @@ if __name__ == '__main__':
 
     
     #通话特征
-    get_interval('userinfoformine','call_count',10)
-    get_interval('userinfoformine','call_time',10)
-    get_interval('userinfoformine','sustained_days',6)
+    get_interval('userinfoformine','call_count',bins = [0,370,690,980,1300,1600,2000,2500,3100,4200,60000])
+    get_interval('userinfoformine','call_time',bins = [0,33400,59400,82700,106600,135100,168400,208300,260200,363200,7522700])
+    get_interval('userinfoformine','sustained_days',bins = [0,153,164,167,168,171,214])
     #平均日通话次数
     data = get_compute_data('userinfoformine', 'user_id')
     data = data[data['sustained_days']!=0]
     data['day_average_call_count'] = data['call_count']/data['sustained_days']
     data = data['day_average_call_count'].dropna()
-    bins = get_average_interval(data, 10)
-    cut = pd.cut(data, bins, right =False)
+    #bins = get_average_interval(data, 10)
+    cut = pd.cut(data, [0,2.8,4.3,5.9,7.4,9,11,14,18,25,500], right =False)
     print 'day_average_call_count : '
     print cut.value_counts(),'\n'
     #关机时长
-    get_unused_time_interval(3,6)
+    get_unused_time_interval(2,5)
     #电商特征
     get_interval('ebusiness_feature','total_order_count',6)
-    get_interval('ebusiness_feature','total_price',10)
-    get_interval('ebusiness_feature','used_days',10)
-    get_interval('ebusiness_feature','price_per_day',10)
+    get_interval('ebusiness_feature','total_price',bins = [0,70,415,1200,2300,4000,6300,9600,14900,27800,664000])
+    get_interval('ebusiness_feature','used_days',bins = [0,35,105,190,300,410,550,690,980,1500,3600])
+    get_interval('ebusiness_feature','price_per_day',bins = [0,0.6,2.4,4.4,6.8,9.5,13.4,18.4,25.6,43.3,1700])
     #地址特征
-    get_interval('getuiresult','home_offset',10,'owner_id')
-    get_interval('getuiresult','work_offset',10,'owner_id')
-    get_interval('baiducredit','home_distance',10,'owner_id')
-    get_interval('baiducredit','company_distance',10,'owner_id')
+    get_interval('getuiresult','home_offset',user_id = 'owner_id',bins = [0,140,300,660,1600,3500,7200,16400,58200,315000,4000000])
+    get_interval('getuiresult','work_offset',user_id = 'owner_id',bins = [0,230,780,1700,3300,5200,8200,14600,38100,269600,4000000])
+    get_interval('baiducredit','home_distance',user_id = 'owner_id',bins = [0,230,780,1800,3700,7100,10900,18000,35000,360000,3100000])
+    get_interval('baiducredit','company_distance',user_id = 'owner_id',bins = [0,410,1200,2500,4500,7300,11000,17800,38500,410000,3300000])
     #多平台贷款特征
     get_interval('loginplatforms','phone_loan_platform_num',2,'owner_id')
     get_interval('loginplatforms','phone_loan_times',2,'owner_id')
