@@ -97,7 +97,7 @@ if __name__ == '__main__':
     #通话特征
     get_interval('userinfoformine','call_count',bins = [0,370,690,980,1300,1600,2000,2500,3100,4200,60000])
     get_interval('userinfoformine','call_time',bins = [0,33400,59400,82700,106600,135100,168400,208300,260200,363200,7522700])
-    get_interval('userinfoformine','sustained_days',bins = [0,153,164,167,214])
+    get_interval('userinfoformine','sustained_days',4)
     #平均日通话次数
     data = get_compute_data('userinfoformine', 'user_id')
     data = data[data['sustained_days']!=0]
@@ -124,4 +124,5 @@ if __name__ == '__main__':
     get_interval('loginplatforms','phone_loan_times',2,'owner_id')
     get_interval('loginplatforms','idcard_loan_platform_num',2,'owner_id')
     get_interval('loginplatforms','idcard_loan_times',2,'owner_id')
+    
     conn.close()
