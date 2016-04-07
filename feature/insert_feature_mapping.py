@@ -2,8 +2,6 @@
 
 import MySQLdb
 
-
-
 DB_HOST = 'rdsv0r421oul5inr17f5.mysql.rds.aliyuncs.com'
 DB_USER = 'tk_yufa'
 DB_PASSWORD = 'tkyufa'
