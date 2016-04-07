@@ -24,7 +24,7 @@ def get_compute_data(table_name, user_id):
                    from %s 
                    group by %s) as t2
              on t1.%s = t2.%s and t1.version = t2.max_version
-             limit 5000,5000;
+             limit 5000,30000;
           ''' %(table_name, user_id, table_name, user_id, user_id, user_id)
     data = get_sql_data(sql, conn)
     
@@ -50,10 +50,11 @@ def get_interval(table_name, feature, num = 2, user_id = 'user_id',bins = None):
     data = data[feature].replace(['',-1],np.nan).dropna()
     if bins == None:
         bins = get_average_interval(data,num)
-    cut = pd.cut(data, bins, right = False)
+    cut = pd.cut(data, bins, right = False).replace(np.nan, '[%s, inf)'%bins[-1])
+    result = cut.value_counts()
     #cut = pd.qcut(data,num)
     print feature,':'
-    print cut.value_counts().sort_index(),'\n'
+    print result[my_sort_index(result)],'\n'
 
 def get_unused_time_interval(num_count, num_time):
     data = get_compute_data('blacklist', 'user_id')
@@ -80,49 +81,57 @@ def get_unused_time_interval(num_count, num_time):
                 if time > max_time:
                     max_time = time
         unused_time.append(max_time)
-    #count_cut = pd.qcut(unused_count, num_count)
-    #time_cut = pd.qcut(unused_time, num_time)
-    count_bins = get_average_interval(unused_count, num_count)
-    time_bins = get_average_interval(unused_time, num_time)
-    count_cut = pd.cut(unused_count, count_bins, right =False)
-    time_cut = pd.cut(unused_time, time_bins, right = False)
+    #count_bins = get_average_interval(unused_count, num_count)
+    #time_bins = get_average_interval(unused_time, num_time)
+    count_bins = range(0,13,2)
+    count_cut = pd.Series(pd.cut(unused_count, count_bins, right = False)).replace(np.nan, '[%s, inf)'%count_bins[-1])
+    time_bins = range(0,57,7)+[400]
+    time_cut = pd.Series(pd.cut(unused_time, time_bins, right = False)).replace(np.nan, '[%s, inf)'%time_bins[-1])
+    result_count = count_cut.value_counts()
+    result_time = time_cut.value_counts()
     print 'unused_count : '
-    print count_cut.value_counts(),'\n'
+    print result_count[my_sort_index(result_count)],'\n'
+    #count_cut = pd.qcut(unused_count, num_count)
     print 'unused_time : '
-    print time_cut.value_counts(),'\n'
+    print result_time[my_sort_index(result_time)],'\n'
+
+def my_sort_index(series):
+    return sorted(series.index, key = lambda x: int(x.split(',')[0][1:]))
 
 if __name__ == '__main__':
 
     
     #通话特征
-    get_interval('userinfoformine','call_count',bins = [0,370,690,980,1300,1600,2000,2500,3100,4200,60000])
-    get_interval('userinfoformine','call_time',bins = [0,33400,59400,82700,106600,135100,168400,208300,260200,363200,7522700])
-    get_interval('userinfoformine','sustained_days',4)
+    get_interval('userinfoformine', 'call_count', bins = range(0,6501,500))
+    get_interval('userinfoformine', 'call_time', bins = range(0,420001,30000))
+    get_interval('userinfoformine', 'sustained_days', bins = range(0,241,30))
     #平均日通话次数
     data = get_compute_data('userinfoformine', 'user_id')
     data = data[data['sustained_days']!=0]
     data['day_average_call_count'] = data['call_count']/data['sustained_days']
     data = data['day_average_call_count'].dropna()
     #bins = get_average_interval(data, 10)
-    cut = pd.cut(data, [0,3,4,6,7,9,11,14,18,25,500], right =False)
+    bins = range(0,49,6)
+    cut = pd.cut(data, bins, right =False).replace(np.nan, '[%s, inf)'%bins[-1])
+    result = cut.value_counts()
     print 'day_average_call_count : '
-    print cut.value_counts().sort_index(),'\n'
+    print result[my_sort_index(result)],'\n'
     #关机时长
     get_unused_time_interval(2,5)
     #电商特征
-    get_interval('ebusiness_feature','total_order_count',6)
-    get_interval('ebusiness_feature','total_price',bins = [0,70,415,1200,2300,4000,6300,9600,14900,27800,664000])
-    get_interval('ebusiness_feature','used_days',bins = [0,35,105,190,300,410,550,690,980,1500,3600])
-    get_interval('ebusiness_feature','price_per_day',bins = [0,1,3,5,7,9,13,18,25,43,1700])
+    get_interval('ebusiness_feature','total_order_count',bins = range(0,481,60))
+    get_interval('ebusiness_feature','total_price',bins = range(0,36001,3000))
+    get_interval('ebusiness_feature','used_days',bins = range(0,2601,200))
+    get_interval('ebusiness_feature','price_per_day',bins = range(0,81,8))
     #地址特征
-    get_interval('getuiresult','home_offset',user_id = 'owner_id',bins = [0,140,300,660,1600,3500,7200,16400,58200,315000,4000000])
-    get_interval('getuiresult','work_offset',user_id = 'owner_id',bins = [0,230,780,1700,3300,5200,8200,14600,38100,269600,4000000])
-    get_interval('baiducredit','home_distance',user_id = 'owner_id',bins = [0,230,780,1800,3700,7100,10900,18000,35000,360000,3100000])
-    get_interval('baiducredit','company_distance',user_id = 'owner_id',bins = [0,410,1200,2500,4500,7300,11000,17800,38500,410000,3300000])
+    get_interval('getuiresult','home_offset',user_id = 'owner_id',bins = range(0,130001,10000))
+    get_interval('getuiresult','work_offset',user_id = 'owner_id',bins = range(0,130001,10000))
+    get_interval('baiducredit','home_distance',user_id = 'owner_id',bins = range(0,72001,6000))
+    get_interval('baiducredit','company_distance',user_id = 'owner_id',bins = range(0,72001,6000))
     #多平台贷款特征
-    get_interval('loginplatforms','phone_loan_platform_num',2,'owner_id')
-    get_interval('loginplatforms','phone_loan_times',2,'owner_id')
-    get_interval('loginplatforms','idcard_loan_platform_num',2,'owner_id')
-    get_interval('loginplatforms','idcard_loan_times',2,'owner_id')
+    get_interval('loginplatforms','phone_loan_platform_num',user_id = 'owner_id',bins = range(0,31,3))
+    get_interval('loginplatforms','phone_loan_times',user_id = 'owner_id',bins = range(0,101,10))
+    get_interval('loginplatforms','idcard_loan_platform_num',user_id = 'owner_id',bins = range(0,31,3))
+    get_interval('loginplatforms','idcard_loan_times',user_id = 'owner_id',bins = range(0,101,10))
     
     conn.close()
