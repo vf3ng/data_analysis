@@ -39,8 +39,9 @@ class DBoperator(object):
         return array  #此处为二维数组（通常为1*n）
         
     def get_common_feature(self, date, id_list, data_type, table_name, feature_name, bins, user_id = 'user_id'):
-        array = self.get_max_version_data(id_list, table_name, feature_name, user_id)[0]
+        array = self.get_max_version_data(id_list, table_name, feature_name, user_id)
         if len(array) != 0:
+            array = array[0]
             array = array[array != -1]
             cut = np.array(pd.cut(array, bins, right = False))
             cut[np.array([i != i for i  in cut])] = '[%s, inf)'%bins[-1]
@@ -54,8 +55,9 @@ class DBoperator(object):
         return (date, feature_name, data_type, final_result)
 
     def get_unused_time_feature(self, date, id_list, data_type, count_bins, time_bins):
-        array = self.get_max_version_data(id_list, 'blacklist', 'unused_time', 'user_id')[0]
+        array = self.get_max_version_data(id_list, 'blacklist', 'unused_time', 'user_id')
         if len(array) != 0:
+            array = array[0]
             array = array[array != u'']
             temp = [i.split('/') for i in array]
             unused_count = [len(i) for i in temp]
@@ -150,12 +152,12 @@ if __name__ =='__main__':
     sql_apply_id = '''
                     select create_by_id from apply
                     where create_at >= '%s' and create_at < '%s' and status != 'e';
-                   '''%('2015-11-11 00:00:00','2015-11-12 00:00:00')#%(date_time_start, date_time_end)
+                   '''%(date_time_start, date_time_end)
     
     sql_apply_pass_id = '''
                     select create_by_id from apply
                     where create_at >= '%s' and create_at < '%s' and status != 'n' and status != 'b' and status != 'e';
-                        '''%('2015-11-11 00:00:00','2015-11-12 00:00:00')#%(date_time_start, date_time_end)
+                        '''%(date_time_start, date_time_end)
     
     sql_m0_id = '''
                 select create_by_id from apply
