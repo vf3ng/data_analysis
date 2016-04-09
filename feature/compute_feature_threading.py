@@ -13,74 +13,88 @@ class DBoperator(object):
         self.cur = self.conn.cursor()
 
     #tk_yufa使用
-    def get_sql_data(self, sql):
-        dataframe = pd.read_sql(sql, self.conn)
-        return dataframe    
+    def get_id_list(self, sql):
+        num = self.cur.execute(sql) #获取数据的条数（长整型）
+        data = self.cur.fetchmany(num)
+        return ['hualahuala_'+str(i[0]) for i in data]
 
-    def get_max_version_data(self, tk_yufa_dataframe, table_name, user_id):
-        if tk_yufa_dataframe.shape[0] == 0:
+    def get_max_version_data(self, id_list, table_name, feature_name, user_id):
+        if isinstance(feature_name, list):
+            feature_name = ','.join(feature_name)
+        if len(id_list) == 0:
             ids = "('nothing')"
-        else :
-            tk_yufa_dataframe['id'] = ['hualahuala_'+str(i) for i in tk_yufa_dataframe['create_by_id']]
-            ids = str(tuple(tk_yufa_dataframe['id']))
+        else:
+            ids = str(tuple(id_list))
         sql_version = '''
-            select * from %s as t1
+            select %s from %s as t1
             join (select %s, max(version) as max_version
                 from %s 
                 where %s in %s
                 group by %s) as t2
             on t1.%s = t2.%s and t1.version = t2.max_version;
-                      ''' %(table_name, user_id, table_name, user_id, ids, user_id, user_id, user_id)
-        dataframe = self.get_sql_data(sql_version)
-        return dataframe
+                      ''' %(feature_name, table_name, user_id, table_name, user_id, ids, user_id, user_id, user_id)
+        num = self.cur.execute(sql_version)
+        data = self.cur.fetchmany(num)
+        array = np.array(data).T 
+        return array  #此处为二维数组（通常为1*n）
         
-    def get_common_feature(self, date, tk_yufa_dataframe, data_type, table_name, feature_name, bins, user_id = 'user_id'):
-        dataframe = self.get_max_version_data(tk_yufa_dataframe, table_name, user_id)
-        data = dataframe[feature_name].replace(['',-1],np.nan).dropna()
-        cut = pd.cut(data, bins, right = False).replace(np.nan, '[%s, inf)'%bins[-1])
-        result = cut.value_counts()
+    def get_common_feature(self, date, id_list, data_type, table_name, feature_name, bins, user_id = 'user_id'):
+        array = self.get_max_version_data(id_list, table_name, feature_name, user_id)
+        if len(array) != 0:
+            array = array[0]
+            array = array[array != -1]
+            cut = np.array(pd.cut(array, bins, right = False))
+            cut[np.array([i != i for i  in cut])] = '[%s, inf)'%bins[-1]
+        else:
+            cut = pd.cut(array, bins, right = False)
+        result = pd.value_counts(cut)
         new_index = ['[%s, %s)'%(bins[i],bins[i+1]) if i!=len(bins)-1 else '[%s, inf)'%bins[i] for i in range(len(bins))]
         final_result = result.reindex(new_index).fillna(0)
-        #final_result = result[sorted(result.index, key = lambda x: int(x.split(',')[0][1:]))]
         print feature_name,'  ',data_type,':'
         print final_result,'\n'
         return (date, feature_name, data_type, final_result)
 
-    def get_unused_time_feature(self, date, tk_yufa_dataframe, data_type, count_bins, time_bins):
-        dataframe = self.get_max_version_data(tk_yufa_dataframe, 'blacklist', 'user_id')
-        data = dataframe['unused_time'].replace('',np.nan).dropna()
-        temp = [i.split('/') for i in data]
-        unused_count = [len(i) for i in temp]
-        a = []
-        for i in temp:
-            if len(i[0])==70:
-                a.append([i[0][-41:]]+i[1:])
-            else:
-                a.append([i[0][-23:]]+i[1:])
-
-        unused_time = []
-        for i in a:
-            max_time = 0
-            for j in i:
-                if len(j)==23:
-                    time = (datetime.strptime(j[-10:],'%Y-%m-%d')-datetime.strptime(j[0:10],'%Y-%m-%d')).days
-                    if time > max_time:
-                        max_time = time
+    def get_unused_time_feature(self, date, id_list, data_type, count_bins, time_bins):
+        array = self.get_max_version_data(id_list, 'blacklist', 'unused_time', 'user_id')
+        if len(array) != 0:
+            array = array[0]
+            array = array[array != u'']
+            temp = [i.split('/') for i in array]
+            unused_count = [len(i) for i in temp]
+            a = []
+            for i in temp:
+                if len(i[0])==70:
+                    a.append([i[0][-41:]]+i[1:])
                 else:
-                    time = (datetime.strptime(j[-19:],'%Y-%m-%d %H:%M:%S')-datetime.strptime(j[0:19],'%Y-%m-%d %H:%M:%S')).days
-                    if time > max_time:
-                        max_time = time
-            unused_time.append(max_time)
-        count_cut = pd.Series(pd.cut(unused_count, count_bins, right = False)).replace(np.nan, '[%s, inf)'%count_bins[-1])
-        time_cut = pd.Series(pd.cut(unused_time, time_bins, right = False)).replace(np.nan, '[%s, inf)'%time_bins[-1])
-        result_count = count_cut.value_counts()
-        result_time = time_cut.value_counts()
+                    a.append([i[0][-23:]]+i[1:])
+
+            unused_time = []
+            for i in a:
+                max_time = 0
+                for j in i:
+                    if len(j)==23:
+                        time = (datetime.strptime(j[-10:],'%Y-%m-%d')-datetime.strptime(j[0:10],'%Y-%m-%d')).days
+                        if time > max_time:
+                            max_time = time
+                    else:
+                        time = (datetime.strptime(j[-19:],'%Y-%m-%d %H:%M:%S')-datetime.strptime(j[0:19],'%Y-%m-%d %H:%M:%S')).days
+                        if time > max_time:
+                            max_time = time
+                unused_time.append(max_time)
+            count_cut = np.array(pd.cut(unused_count, count_bins, right = False))
+            count_cut[np.array([i != i for i in count_cut])] = '[%s, inf)'%count_bins[-1]
+            time_cut = np.array(pd.cut(unused_time, time_bins, right = False))
+            time_cut[np.array([i != i for i in time_cut])] = '[%s, inf)'%time_bins[-1]
+        else:
+            count_cut = pd.cut(array, count_bins, right = False)
+            time_cut = pd.cut(array, time_bins, right = False)
+
+        result_count = pd.value_counts(count_cut)
+        result_time = pd.value_counts(time_cut)
         new_count_index = ['[%s, %s)'%(count_bins[i],count_bins[i+1]) if i!=len(count_bins)-1 else '[%s, inf)'%count_bins[i] for i in range(len(count_bins))]
         final_result_count = result_count.reindex(new_count_index).fillna(0)
         new_time_index = ['[%s, %s)'%(time_bins[i],time_bins[i+1]) if i!=len(time_bins)-1 else '[%s, inf)'%time_bins[i] for i in range(len(time_bins))]
         final_result_time = result_time.reindex(new_time_index).fillna(0)
-        #final_result_count = result_count[sorted(result_count.index, key = lambda x: int(x.split(',')[0][1:]))] 
-        #final_result_time = result_time[sorted(result_time.index, key = lambda x: int(x.split(',')[0][1:]))]
         print 'unused_count    %s : '%data_type
         print final_result_count,'\n'
         print 'unused_time    %s : '%data_type
@@ -88,13 +102,16 @@ class DBoperator(object):
         return [(date, 'unused_count', data_type, final_result_count), (date, 'unused_time', data_type, final_result_time)]
 
 
-    def get_day_average_call_count_feature(self, date, tk_yufa_dataframe, data_type, bins):
-        dataframe = self.get_max_version_data(tk_yufa_dataframe, 'userinfoformine', 'user_id')
-        data = dataframe[dataframe['sustained_days']!=0].copy()
-        data.loc[:,'day_average_call_count'] = data['call_count']/data['sustained_days']
-        data = data['day_average_call_count'].dropna()
-        cut = pd.cut(data, bins, right =False).replace(np.nan, '[%s, inf)'%bins[-1])
-        result = cut.value_counts()
+    def get_day_average_call_count_feature(self, date, id_list, data_type, bins):
+        array = self.get_max_version_data(id_list, 'userinfoformine', ['call_count', 'sustained_days'], 'user_id') #此处为2*n的数组
+        if len(array) != 0:
+            new_array = array.T[array[1] != 0].astype(np.float) #转换为F连续会好些
+            result_array = new_array[:,0]/new_array[:,1]
+            cut = np.array(pd.cut(result_array, bins, right =False))
+            cut[np.array([i!=i for i in cut])] = '[%s, inf)'%bins[-1]
+        else:
+            cut = pd.cut(array, bins, right = False)
+        result = pd.value_counts(cut)
         new_index = ['[%s, %s)'%(bins[i],bins[i+1]) if i!=len(bins)-1 else '[%s, inf)'%bins[i] for i in range(len(bins))]
         final_result = result.reindex(new_index).fillna(0)
         #final_result = result[sorted(result.index, key = lambda x: int(x.split(',')[0][1:]))]
@@ -129,19 +146,19 @@ if __name__ =='__main__':
     DB_NAME1 = 'tk_yufa'
     DB_NAME2 = 'data_online'
     
-    tk_yufa = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME1)
-    data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
+    #tk_yufa = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME1)
+    #data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
     
     #data_type
     sql_apply_id = '''
                     select create_by_id from apply
                     where create_at >= '%s' and create_at < '%s' and status != 'e';
-                   '''%(date_time_start, date_time_end)
+                   '''%('2015-11-11 00:00:00','2015-11-12 00:00:00')#%(date_time_start, date_time_end)
     
     sql_apply_pass_id = '''
                     select create_by_id from apply
                     where create_at >= '%s' and create_at < '%s' and status != 'n' and status != 'b' and status != 'e';
-                        '''%(date_time_start, date_time_end)
+                        '''%('2015-11-11 00:00:00','2015-11-12 00:00:00')#%(date_time_start, date_time_end)
     
     sql_m0_id = '''
                 select create_by_id from apply
@@ -174,25 +191,25 @@ if __name__ =='__main__':
     def unused_feature():
         tk_yufa = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME1)
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
-        try:
-            for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                unused_feature = data_online.get_unused_time_feature(date, tk_dataframe, data_type, count_bins = range(0,13,2), time_bins = range(0,57,7))
-                data_online.insert_into_table(unused_feature[0])
-                data_online.insert_into_table(unused_feature[1])
-            tk_yufa.commit_and_close()
-            data_online.commit_and_close() 
-        except Exception,e:
-            print 'unused_feature  error\n' 
-            log.error(str(e))
+        #try:
+        for sql, data_type in sql_list:
+            id_list = tk_yufa.get_id_list(sql)
+            unused_feature = data_online.get_unused_time_feature(date, id_list, data_type, count_bins = range(0,13,2), time_bins = range(0,57,7))
+            data_online.insert_into_table(unused_feature[0])
+            data_online.insert_into_table(unused_feature[1])
+        tk_yufa.commit_and_close()
+        data_online.commit_and_close() 
+        #except Exception,e:
+            #print 'unused_feature  error\n' 
+            #log.error(str(e))
     #计算"平均日通话次数"分布特征
     def day_average_call_count():
         tk_yufa = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME1)
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_day_average_call_count_feature(date, tk_dataframe, data_type, bins = range(0,49,6))
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_day_average_call_count_feature(date, id_list, data_type, bins = range(0,49,6))
                 data_online.insert_into_table(feature)    
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -205,8 +222,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'userinfoformine', 'call_count', bins = range(0,6501,500))
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'userinfoformine', 'call_count', bins = range(0,6501,500))
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -219,8 +236,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'userinfoformine', 'call_time', bins = range(0,420001,30000))
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'userinfoformine', 'call_time', bins = range(0,420001,30000))
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -233,8 +250,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'userinfoformine', 'sustained_days', bins = range(0,241,30))
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'userinfoformine', 'sustained_days', bins = range(0,241,30))
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -247,8 +264,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'ebusiness_feature','total_order_count',bins = range(0,481,60))
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'ebusiness_feature','total_order_count',bins = range(0,481,60))
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -261,8 +278,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'ebusiness_feature','total_price',bins = range(0,36001,3000))
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'ebusiness_feature','total_price',bins = range(0,36001,3000))
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -275,8 +292,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'ebusiness_feature','used_days',bins = range(0,2601,200))
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'ebusiness_feature','used_days',bins = range(0,2601,200))
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -289,8 +306,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'ebusiness_feature','price_per_day',bins = range(0,81,8))
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'ebusiness_feature','price_per_day',bins = range(0,81,8))
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -303,8 +320,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'getuiresult', 'home_offset', bins = range(0,130001,10000), user_id = 'owner_id')
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'getuiresult', 'home_offset', bins = range(0,130001,10000), user_id = 'owner_id')
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -317,8 +334,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'getuiresult', 'work_offset', bins = range(0,130001,10000), user_id = 'owner_id')
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'getuiresult', 'work_offset', bins = range(0,130001,10000), user_id = 'owner_id')
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -331,8 +348,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'baiducredit', 'home_distance', bins = range(0,72001,6000), user_id = 'owner_id')
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'baiducredit', 'home_distance', bins = range(0,72001,6000), user_id = 'owner_id')
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -345,8 +362,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'baiducredit', 'company_distance', bins = range(0,72001,6000), user_id = 'owner_id')
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'baiducredit', 'company_distance', bins = range(0,72001,6000), user_id = 'owner_id')
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -359,8 +376,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'loginplatforms', 'phone_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'loginplatforms', 'phone_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -373,8 +390,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'loginplatforms', 'phone_loan_times', bins = range(0,101,10), user_id = 'owner_id')
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'loginplatforms', 'phone_loan_times', bins = range(0,101,10), user_id = 'owner_id')
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -387,8 +404,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'loginplatforms', 'idcard_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'loginplatforms', 'idcard_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -401,8 +418,8 @@ if __name__ =='__main__':
         data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
         try:
             for sql, data_type in sql_list:
-                tk_dataframe = tk_yufa.get_sql_data(sql)
-                feature = data_online.get_common_feature(date, tk_dataframe, data_type, 'loginplatforms', 'idcard_loan_times', bins = range(0,101,10), user_id = 'owner_id')
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, 'loginplatforms', 'idcard_loan_times', bins = range(0,101,10), user_id = 'owner_id')
                 data_online.insert_into_table(feature)
             tk_yufa.commit_and_close()
             data_online.commit_and_close()
@@ -412,12 +429,9 @@ if __name__ =='__main__':
 
     threads = []
     start = time.time()
-    threads.append(threading.Thread(target = lambda : (unused_feature(),day_average_call_count(),call_count()), args = ()))
-    threads.append(threading.Thread(target = lambda : (call_time(),sustained_days(),total_order_count()), args = ()))
-    threads.append(threading.Thread(target = lambda : (total_price(),used_days(),price_per_day()), args = ()))
-    threads.append(threading.Thread(target = lambda : (home_offset(),work_offset(),home_distance()), args = ()))
-    threads.append(threading.Thread(target = lambda : (company_distance(),phone_loan_platform_num()), args = ()))
-    threads.append(threading.Thread(target = lambda : (phone_loan_times(),idcard_loan_platform_num(),idcard_loan_times()), args = ()))
+    threads.append(threading.Thread(target = lambda : (unused_feature(),day_average_call_count(),call_count(),call_time(),sustained_days(),total_order_count()), args = ()))
+    threads.append(threading.Thread(target = lambda : (total_price(),used_days(),price_per_day(),home_offset(),work_offset(),home_distance()), args = ()))
+    threads.append(threading.Thread(target = lambda : (company_distance(),phone_loan_platform_num(),phone_loan_times(),idcard_loan_platform_num(),idcard_loan_times()), args = ()))
     for t in threads:
         t.setDaemon(True)
         t.start()
