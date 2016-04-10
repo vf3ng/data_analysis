@@ -43,8 +43,10 @@ class DBoperator(object):
         if len(array) != 0:
             array = array[0]
             array = array[array != -1]
-            cut = np.array(pd.cut(array, bins, right = False))
-            cut[np.array([i != i for i  in cut])] = '[%s, inf)'%bins[-1]
+            cut = pd.cut(array, bins, right = False)
+            cut = ['[%s, inf)'%bins[-1] if i!=i else i for i in cut] 
+            #cut = np.array(pd.cut(array, bins, right = False))
+            #cut[np.array([i != i for i  in cut])] = '[%s, inf)'%bins[-1]
         else:
             cut = pd.cut(array, bins, right = False)
         result = pd.value_counts(cut)
@@ -81,10 +83,14 @@ class DBoperator(object):
                         if time > max_time:
                             max_time = time
                 unused_time.append(max_time)
-            count_cut = np.array(pd.cut(unused_count, count_bins, right = False))
-            count_cut[np.array([i != i for i in count_cut])] = '[%s, inf)'%count_bins[-1]
-            time_cut = np.array(pd.cut(unused_time, time_bins, right = False))
-            time_cut[np.array([i != i for i in time_cut])] = '[%s, inf)'%time_bins[-1]
+            count_cut = pd.cut(unused_count, count_bins, right = False)
+            count_cut = ['[%s, inf)'%count_bins[-1] if i!=i else i for i in count_cut]
+            time_cut = pd.cut(unused_count, time_bins, right = False)
+            time_cut = ['[%s, inf)'%time_bins[-1] if i!=i else i for i in time_cut]
+            #count_cut = np.array(pd.cut(unused_count, count_bins, right = False))
+            #count_cut[np.array([i != i for i in count_cut])] = '[%s, inf)'%count_bins[-1]
+            #time_cut = np.array(pd.cut(unused_time, time_bins, right = False))
+            #time_cut[np.array([i != i for i in time_cut])] = '[%s, inf)'%time_bins[-1]
         else:
             count_cut = pd.cut(array, count_bins, right = False)
             time_cut = pd.cut(array, time_bins, right = False)
