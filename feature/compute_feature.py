@@ -111,7 +111,7 @@ class DBoperator(object):
     def get_day_average_call_count_feature(self, date, id_list, data_type, bins):
         array = self.get_max_version_data(id_list, 'userinfoformine', ['call_count', 'sustained_days'], 'user_id') #此处为2*n的数组
         if len(array) != 0:
-            new_array = array.T[array[1] != 0].astype(np.float) #转换为F连续会好些
+            new_array = array.T[array[1] != 0].astype(np.float).copy('F')
             result_array = new_array[:,0]/new_array[:,1]
             cut = np.array(pd.cut(result_array, bins, right =False))
             cut[np.array([i!=i for i in cut])] = '[%s, inf)'%bins[-1]
@@ -191,7 +191,7 @@ if __name__ =='__main__':
                 '''
 
     sql_list = [(sql_apply_id, 'apply'),(sql_apply_pass_id,'apply_pass'),(sql_m0_id,'m0'),(sql_m1_id,'m1'),(sql_m2_id,'m2'),(sql_m3_id,'m3'),(sql_m4_id,'m4')]
-
+    
     #计算"关机时长和次数"分布特征
     try:
         for sql, data_type in sql_list:
