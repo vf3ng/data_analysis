@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import MySQLdb
+import math
 from datetime import datetime, timedelta
 from common import tk_log_client
 
@@ -52,8 +53,8 @@ class DBoperator(object):
         result = pd.value_counts(cut)
         new_index = ['[%s, %s)'%(bins[i],bins[i+1]) if i!=len(bins)-1 else '[%s, inf)'%bins[i] for i in range(len(bins))]
         final_result = result.reindex(new_index).fillna(0)
-        print feature_name,'  ',data_type,':'
-        print final_result,'\n'
+        #print feature_name,'  ',data_type,':'
+        #print final_result,'\n'
         return (date, feature_name, data_type, final_result)
 
     def get_unused_time_feature(self, date, id_list, data_type, count_bins, time_bins):
@@ -101,10 +102,10 @@ class DBoperator(object):
         final_result_count = result_count.reindex(new_count_index).fillna(0)
         new_time_index = ['[%s, %s)'%(time_bins[i],time_bins[i+1]) if i!=len(time_bins)-1 else '[%s, inf)'%time_bins[i] for i in range(len(time_bins))]
         final_result_time = result_time.reindex(new_time_index).fillna(0)
-        print 'unused_count    %s : '%data_type
-        print final_result_count,'\n'
-        print 'unused_time    %s : '%data_type
-        print final_result_time,'\n'
+        #print 'unused_count    %s : '%data_type
+        #print final_result_count,'\n'
+        #print 'unused_time    %s : '%data_type
+        #print final_result_time,'\n'
         return [(date, 'unused_count', data_type, final_result_count), (date, 'unused_time', data_type, final_result_time)]
 
 
@@ -121,13 +122,38 @@ class DBoperator(object):
         new_index = ['[%s, %s)'%(bins[i],bins[i+1]) if i!=len(bins)-1 else '[%s, inf)'%bins[i] for i in range(len(bins))]
         final_result = result.reindex(new_index).fillna(0)
         #final_result = result[sorted(result.index, key = lambda x: int(x.split(',')[0][1:]))]
-        print 'day_average_call_count    %s : '%data_type
-        print final_result,'\n'
+        #print 'day_average_call_count    %s : '%data_type
+        #print final_result,'\n'
         return (date, 'day_average_call_count', data_type, final_result)
 
     def insert_into_table(self, feature_data):
         for i in range(len(feature_data[3])):
             self.cur.execute('insert into day_interval_feature values(%s,%s,%s,%s,%s)',(feature_data[0],feature_data[1],feature_data[2],feature_data[3].index[i],feature_data[3][i]))
+
+    def compute_IV(self, date, feature_name, relation_type, series_1, series_0):
+        total_1 = series_1.sum()
+        total_0 = series_0.sum()
+        IV = 0
+        sign = 0
+        for i in range(len(series_1)):
+            '''
+            if series_1[i] == 0 or series_0[i] == 0:
+                IV = 9.9
+                break
+            '''
+            if series_1[i] == 0 or series_0[i] == 0:
+                continue
+            IV = (series_1[i]*1.0/total_1-series_0[i]*1.0/total_0)*math.log((series_1[i]*1.0/total_1)/(series_0[i]*1.0/total_0)) + IV
+            sign = 1
+        if sign == 0:
+            IV = 9.9
+        self.cur.execute('insert into feature_iv values(%s,%s,%s,%s)',(date, feature_name, relation_type, IV))
+        print 'series_1 :'
+        print series_1
+        print 'series_0 :'
+        print series_0
+        print feature_name,'  ',relation_type,':',IV 
+        
 
     def commit_and_close(self):
         self.cur.close()
@@ -153,46 +179,65 @@ if __name__ =='__main__':
     
     tk_yufa = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME1)
     data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
-    
-    #data_type
+
     sql_apply_id = '''
-                    select create_by_id from apply
-                    where create_at >= '%s' and create_at < '%s' and status != 'e';
-                   '''%(date_time_start, date_time_end)
+                    select distinct create_by_id from apply
+                    where create_at >= '%s' and create_at < '%s' and status != 'e'
+                   '''%('2015-11-11 00:00:00','2015-11-12 00:00:00')#%(date_time_start, date_time_end)
     
+    sql_apply_deny_id = '''
+                    select distinct create_by_id from apply
+                    where create_at >= '%s' and create_at < '%s' and (status = 'n' or status = 'b')
+                        '''%('2015-11-11 00:00:00','2015-11-12 00:00:00')#%(date_time_start, date_time_end)
+
     sql_apply_pass_id = '''
-                    select create_by_id from apply
-                    where create_at >= '%s' and create_at < '%s' and status != 'n' and status != 'b' and status != 'e';
-                        '''%(date_time_start, date_time_end)
+                    select distinct create_by_id from apply
+                    where create_at >= '%s' and create_at < '%s' and status != 'e' and create_by_id not in(%s)
+                        '''%('2015-11-11 00:00:00','2015-11-12 00:00:00',sql_apply_deny_id)#%(date_time_start, date_time_end)
     
     sql_m0_id = '''
-                select create_by_id from apply
-                where type = 'a';
+                select distinct create_by_id from apply
+                where type = 'a' and status != '8'
                 '''
 
     sql_m1_id = '''
-                select create_by_id from apply
-                where type = 'b';
+                select distinct create_by_id from apply
+                where type = 'b' and status != '8'
                 '''
 
     sql_m2_id = '''
-                select create_by_id from apply
-                where type = 'c';
+                select distinct create_by_id from apply
+                where type = 'c' and status != '8'
                 '''
 
     sql_m3_id = '''
-                select create_by_id from apply
-                where type = 'd';
+                select distinct create_by_id from apply
+                where type = 'd' and status != '8'
                 '''
 
     sql_m4_id = '''
-                select create_by_id from apply
-                where type = 'e';
+                select distinct create_by_id from apply
+                where type = 'e' and status != '8'
                 '''
+    #计算逾期IV值附加的语句
+    sql_not_m_id = '''
+                select distinct user_id from repaymentinfo
+                where user_id not in
+                (select distinct create_by_id from apply
+                where type in ('a','b','c','d','e'))
+                   '''
+    sql_m_id = '''
+                select distinct create_by_id from apply
+                where type in ('a','b','c','d','e')
+               '''
+
 
     sql_list = [(sql_apply_id, 'apply'),(sql_apply_pass_id,'apply_pass'),(sql_m0_id,'m0'),(sql_m1_id,'m1'),(sql_m2_id,'m2'),(sql_m3_id,'m3'),(sql_m4_id,'m4')]
+
+    IV_sql_list = [(sql_apply_pass_id, sql_apply_deny_id, 'pass_deny'),(sql_not_m_id, sql_m_id, 'm_not_m')]
     
-    #计算"关机时长和次数"分布特征
+    #计算"关机时长和次数"分布特征、IV
+    
     try:
         for sql, data_type in sql_list:
             id_list = tk_yufa.get_id_list(sql)
@@ -202,7 +247,19 @@ if __name__ =='__main__':
     except Exception,e:
         log.error(str(e))
         print 'unused_feature  error\n'
-    #计算"平均日通话次数"分布特征
+    
+    try:
+        for sql_1, sql_0, relation_type in IV_sql_list:
+            id_list_1 = tk_yufa.get_id_list(sql_1)
+            id_list_0 = tk_yufa.get_id_list(sql_0)
+            unused_feature_1 = data_online.get_unused_time_feature(date, id_list_1, 'nothing', count_bins = range(0,13,2), time_bins = range(0,57,7))
+            unused_feature_0 = data_online.get_unused_time_feature(date, id_list_0, 'nothing', count_bins = range(0,13,2), time_bins = range(0,57,7))
+            data_online.compute_IV(date, unused_feature_1[0][1], relation_type, unused_feature_1[0][3], unused_feature_0[0][3])
+            data_online.compute_IV(date, unused_feature_1[1][1], relation_type, unused_feature_1[1][3], unused_feature_0[1][3])
+    except Exception,e:
+        log.error(str(e))
+        print 'unused_feature_IV  error\n'
+    #计算"平均日通话次数"分布特征、IV
     try:
         for sql, data_type in sql_list:
             id_list = tk_yufa.get_id_list(sql)
@@ -211,142 +268,68 @@ if __name__ =='__main__':
     except Exception,e:
         log.error(str(e))
         print 'day_average_call_count  error\n'
-    #计算"通话次数"分布特征
     try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'userinfoformine', 'call_count', bins = range(0,6501,500))
-            data_online.insert_into_table(feature)
+        for sql_1, sql_0, relation_type in IV_sql_list:
+            id_list_1 = tk_yufa.get_id_list(sql_1)
+            id_list_0 = tk_yufa.get_id_list(sql_0)
+            feature_1 = data_online.get_day_average_call_count_feature(date, id_list_1, 'nothing', bins = range(0,49,6))
+            feature_0 = data_online.get_day_average_call_count_feature(date, id_list_0, 'nothing', bins = range(0,49,6))
+            data_online.compute_IV(date, feature_1[1], relation_type, feature_1[3], feature_0[3])
     except Exception,e:
         log.error(str(e))
-        print 'call_count  error\n'    
-    #计算"通话时间"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'userinfoformine', 'call_time', bins = range(0,420001,30000))
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'call_time  error\n'
-    #计算"手机使用天数"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'userinfoformine', 'sustained_days', bins = range(0,241,30))
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'sustained_days  error\n'
-    #计算"订单次数"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'ebusiness_feature','total_order_count',bins = range(0,481,60))
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'total_order_count  error\n'
-    #计算"订单金额"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'ebusiness_feature','total_price',bins = range(0,36001,3000))
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'total_price  error\n'
-    #计算"使用天数"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'ebusiness_feature','used_days',bins = range(0,2601,200))
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'used_days  error\n'
-    #计算"日均消费金额"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'ebusiness_feature','price_per_day',bins = range(0,81,8))
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'price_per_day  error\n'
-    #计算"个推家庭地址距离"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'getuiresult', 'home_offset', bins = range(0,130001,10000), user_id = 'owner_id')
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'home_offset  error\n'
-    #计算"个推工作地址距离"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'getuiresult', 'work_offset', bins = range(0,130001,10000), user_id = 'owner_id')
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'work_offset  error\n'
-    #计算"百度家庭地址距离"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'baiducredit', 'home_distance', bins = range(0,72001,6000), user_id = 'owner_id')
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'home_distance  error\n'
-    #计算"百度工作地址距离"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'baiducredit', 'company_distance', bins = range(0,72001,6000), user_id = 'owner_id')
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'company_distance  error\n'
-    #计算"手机平台数"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'loginplatforms', 'phone_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'phone_loan_platform_num  error\n'
-    #计算"手机贷款次数"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'loginplatforms', 'phone_loan_times', bins = range(0,101,10), user_id = 'owner_id')
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'phone_loan_times  error\n'
-    #计算"身份证平台数"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'loginplatforms', 'idcard_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'idcard_loan_platform_num  error\n'
-    #计算"身份证贷款次数"分布特征
-    try:
-        for sql, data_type in sql_list:
-            id_list = tk_yufa.get_id_list(sql)
-            feature = data_online.get_common_feature(date, id_list, data_type, 'loginplatforms', 'idcard_loan_times', bins = range(0,101,10), user_id = 'owner_id')
-            data_online.insert_into_table(feature)
-    except Exception,e:
-        log.error(str(e))
-        print 'idcard_loan_times  error\n'
-    
+        print 'day_average_call_count_IV  error\n'
+
+    #定义特征、IV通用计算函数
+    def common_feature(table_name, feature_name, bins, user_id = 'user_id'):
+        try:
+            for sql, data_type in sql_list:
+                id_list = tk_yufa.get_id_list(sql)
+                feature = data_online.get_common_feature(date, id_list, data_type, table_name, feature_name, bins = bins, user_id = user_id)
+                data_online.insert_into_table(feature)
+        except Exception,e:
+            log.error(str(e))
+            print '%s  error\n'%feature_name
+        try:
+            for sql_1, sql_0, relation_type in IV_sql_list:
+                id_list_1 = tk_yufa.get_id_list(sql_1)
+                id_list_0 = tk_yufa.get_id_list(sql_0)
+                feature_1 = data_online.get_common_feature(date, id_list_1, 'nothing', table_name, feature_name, bins = bins, user_id = user_id)
+                feature_0 = data_online.get_common_feature(date, id_list_0, 'nothing', table_name, feature_name, bins = bins, user_id = user_id)
+                data_online.compute_IV(date, feature_1[1], relation_type, feature_1[3], feature_0[3])
+        except Exception,e:
+            log.error(str(e))
+            print '%s_IV  error\n'%feature_name
+    #计算"通话次数"分布特征、IV
+    common_feature('userinfoformine', 'call_count', bins = range(0,6501,500))
+    #计算"通话时间"分布特征、IV
+    common_feature('userinfoformine', 'call_time', bins = range(0,420001,30000))
+    #计算"手机使用天数"分布特征、IV
+    common_feature('userinfoformine', 'sustained_days', bins = range(0,241,30))
+    #计算"订单次数"分布特征、IV
+    common_feature('ebusiness_feature', 'total_order_count', bins = range(0,481,60))
+    #计算"订单金额"分布特征、IV
+    common_feature('ebusiness_feature', 'total_price', bins = range(0,36001,3000))
+    #计算"使用天数"分布特征、IV
+    common_feature('ebusiness_feature', 'used_days',bins = range(0,2601,200))
+    #计算"日均消费金额"分布特征、IV
+    common_feature('ebusiness_feature', 'price_per_day',bins = range(0,81,8))
+    #计算"个推家庭地址距离"分布特征、IV
+    common_feature('getuiresult', 'home_offset', bins = range(0,130001,10000), user_id = 'owner_id')
+    #计算"个推工作地址距离"分布特征、IV
+    common_feature('getuiresult', 'work_offset', bins = range(0,130001,10000), user_id = 'owner_id')
+    #计算"百度家庭地址距离"分布特征、IV
+    common_feature('baiducredit', 'home_distance', bins = range(0,72001,6000), user_id = 'owner_id')
+    #计算"百度工作地址距离"分布特征、IV
+    common_feature('baiducredit', 'company_distance', bins = range(0,72001,6000), user_id = 'owner_id')
+    #计算"手机平台数"分布特征、IV
+    common_feature('loginplatforms', 'phone_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
+    #计算"手机贷款次数"分布特征、IV
+    common_feature('loginplatforms', 'phone_loan_times', bins = range(0,101,10), user_id = 'owner_id')
+    #计算"身份证平台数"分布特征、IV
+    common_feature('loginplatforms', 'idcard_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
+    #计算"身份证贷款次数"分布特征、IV
+    common_feature('loginplatforms', 'idcard_loan_times', bins = range(0,101,10), user_id = 'owner_id')
+
     tk_yufa.commit_and_close()
     data_online.commit_and_close()
     print time.time()-start
