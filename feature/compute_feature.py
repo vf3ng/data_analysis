@@ -151,7 +151,6 @@ class DBoperator(object):
                     a.append([i[0][-41:]]+i[1:])
                 else:
                     a.append([i[0][-23:]]+i[1:])
-
             unused_time = []
             for i in a:
                 max_time = 0
@@ -176,7 +175,6 @@ class DBoperator(object):
         else:
             count_cut = pd.cut(array, count_bins, right = False)
             time_cut = pd.cut(array, time_bins, right = False)
-
         result_count = pd.value_counts(count_cut)
         result_time = pd.value_counts(time_cut)
         new_count_index = ['[%s, %s)'%(count_bins[i],count_bins[i+1]) if i!=len(count_bins)-1 else '[%s, inf)'%count_bins[i] for i in range(len(count_bins))]
@@ -188,7 +186,6 @@ class DBoperator(object):
         #print 'unused_time    %s : '%data_type
         #print final_result_time,'\n'
         return [(date, 'unused_count', data_type, final_result_count), (date, 'unused_time', data_type, final_result_time)]
-
 
     def get_day_average_call_count_feature(self, date, id_list, data_type, bins):
         array = self.get_max_version_data(id_list, 'userinfoformine', ['call_count', 'sustained_days'], 'user_id') #此处为2*n的数组
@@ -242,7 +239,6 @@ class DBoperator(object):
         print series_0
         print feature_name,'  ',relation_type,':',IV 
         
-
     def commit_and_close(self):
         self.cur.close()
         self.conn.commit()
@@ -356,35 +352,35 @@ if __name__ =='__main__':
             log.error(str(e))
             print '%s_IV  error\n'%feature_name
     
-    #计算"通话次数"分布特征
+    #计算"通话次数"IV
     common_feature_iv('userinfoformine', 'call_count', bins = range(0,6501,500))
-    #计算"通话时间"分布特征
+    #计算"通话时间"IV
     common_feature_iv('userinfoformine', 'call_time', bins = range(0,420001,30000))
-    #计算"手机使用天数"分布特征
+    #计算"手机使用天数"IV
     common_feature_iv('userinfoformine', 'sustained_days', bins = range(0,241,30))
-    #计算"订单次数"分布特征
+    #计算"订单次数"IV
     common_feature_iv('ebusiness_feature', 'total_order_count', bins = range(0,481,60))
-    #计算"订单金额"分布特征
+    #计算"订单金额"IV
     common_feature_iv('ebusiness_feature', 'total_price', bins = range(0,36001,3000))
-    #计算"使用天数"分布特征
+    #计算"使用天数"IV
     common_feature_iv('ebusiness_feature', 'used_days',bins = range(0,2601,200))
-    #计算"日均消费金额"分布特征
+    #计算"日均消费金额"IV
     common_feature_iv('ebusiness_feature', 'price_per_day',bins = range(0,81,8))
-    #计算"个推家庭地址距离"分布特征
+    #计算"个推家庭地址距离"IV
     common_feature_iv('getuiresult', 'home_offset', bins = range(0,130001,10000), user_id = 'owner_id')
-    #计算"个推工作地址距离"分布特征
+    #计算"个推工作地址距离"IV
     common_feature_iv('getuiresult', 'work_offset', bins = range(0,130001,10000), user_id = 'owner_id')
-    #计算"百度家庭地址距离"分布特征
+    #计算"百度家庭地址距离"IV
     common_feature_iv('baiducredit', 'home_distance', bins = range(0,72001,6000), user_id = 'owner_id')
-    #计算"百度工作地址距离"分布特征
+    #计算"百度工作地址距离"IV
     common_feature_iv('baiducredit', 'company_distance', bins = range(0,72001,6000), user_id = 'owner_id')
-    #计算"手机平台数"分布特征
+    #计算"手机平台数"IV
     common_feature_iv('loginplatforms', 'phone_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
-    #计算"手机贷款次数"分布特征
+    #计算"手机贷款次数"IV
     common_feature_iv('loginplatforms', 'phone_loan_times', bins = range(0,101,10), user_id = 'owner_id')
-    #计算"身份证平台数"分布特征
+    #计算"身份证平台数"IV
     common_feature_iv('loginplatforms', 'idcard_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
-    #计算"身份证贷款次数"分布特征
+    #计算"身份证贷款次数"IV
     common_feature_iv('loginplatforms', 'idcard_loan_times', bins = range(0,101,10), user_id = 'owner_id')
     
     tk_yufa.commit_and_close()
