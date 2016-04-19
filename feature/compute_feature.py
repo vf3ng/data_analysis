@@ -29,13 +29,11 @@ sql_apply_id = '''
                 select distinct create_by_id from apply
                 where create_at >= '%s' and create_at < '%s' and status != 'e'
                 '''%(date_time_start, date_time_end)
-                #%('2015-11-11 00:00:00','2015-11-12 00:00:00')
 
 sql_apply_pass_id = '''
                 select distinct create_by_id from apply
                 where create_at >= '%s' and create_at < '%s' and (status = 'a' or status = 'y')
                     '''%(date_time_start, date_time_end)
-                #%('2015-11-11 00:00:00','2015-11-12 00:00:00')
 
 sql_m0_id = '''
             select distinct create_by_id from apply
@@ -62,7 +60,7 @@ sql_m4_id = '''
             where type = 'e' and status != '8'
             '''
 
-#计算逾期IV值的语句
+#计算IV值的语句
 sql_apply_pass_id_iv = '''
                         select distinct create_by_id from apply
                         where create_at >= '%s' and create_at < '%s' and (status = 'a' or status = 'y')
