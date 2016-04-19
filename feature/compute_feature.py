@@ -313,6 +313,10 @@ if __name__ =='__main__':
     #计算"身份证贷款次数"分布特征
     common_feature('loginplatforms', 'idcard_loan_times', bins = range(0,101,10), user_id = 'owner_id')
 
+    '''
+    特征的IV值不需要每日计算，
+    需要计算时，再进行如下函数的调用。
+    '''
     
     #计算"关机时长和次数"IV
     try:
