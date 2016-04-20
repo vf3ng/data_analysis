@@ -64,12 +64,12 @@ sql_m4_id = '''
 sql_apply_pass_id_iv = '''
                         select distinct create_by_id from apply
                         where create_at >= '%s' and create_at < '%s' and (status = 'a' or status = 'y')
-                       '''%('2015-11-01 00:00:00', '2015-11-30 00:00:00')
+                       '''%('2015-11-01 00:00:00', '2015-12-30 00:00:00')
 
 sql_apply_deny_id_iv = '''
                         select distinct create_by_id from apply
                         where create_at >= '%s' and create_at < '%s' and status != 'e' and create_by_id not in (%s)
-                       '''%('2015-11-01 00:00:00', '2015-11-30 00:00:00', sql_apply_pass_id)
+                       '''%('2015-11-01 00:00:00', '2015-12-30 00:00:00', sql_apply_pass_id)
 
 sql_not_m_id_iv = '''
                   select distinct user_id from repaymentinfo
@@ -251,12 +251,12 @@ if __name__ =='__main__':
 
     tk_yufa = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME1)
     data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
-    
+     
     #计算"关机时长和次数"分布特征
     try:
         for sql, data_type in sql_list:
             id_list = tk_yufa.get_id_list(sql)
-            unused_feature = data_online.get_unused_time_feature(date, id_list, data_type, count_bins = range(0,13,2), time_bins = range(0,57,7))
+            unused_feature = data_online.get_unused_time_feature(date, id_list, data_type, count_bins = range(0,13,2), time_bins = range(0,8,1)) #time_bins = range(0,57,7)
             data_online.insert_into_table(unused_feature[0])
             data_online.insert_into_table(unused_feature[1]) 
     except Exception,e:
@@ -318,19 +318,19 @@ if __name__ =='__main__':
     需要计算时，再进行如下函数的调用。
     '''
     
+    '''
     #计算"关机时长和次数"IV
     try:
         for sql_1, sql_0, relation_type in IV_sql_list:
             id_list_1 = tk_yufa.get_id_list(sql_1)
             id_list_0 = tk_yufa.get_id_list(sql_0)
-            unused_feature_1 = data_online.get_unused_time_feature(date, id_list_1, 'nothing', count_bins = range(0,13,2), time_bins = range(0,57,7))
-            unused_feature_0 = data_online.get_unused_time_feature(date, id_list_0, 'nothing', count_bins = range(0,13,2), time_bins = range(0,57,7))
+            unused_feature_1 = data_online.get_unused_time_feature(date, id_list_1, 'nothing', count_bins = range(0,13,2), time_bins = range(0,8,1))#time_bins = range(0,57,7)
+            unused_feature_0 = data_online.get_unused_time_feature(date, id_list_0, 'nothing', count_bins = range(0,13,2), time_bins = range(0,8,1))#time_bins = range(0,57,7)
             data_online.compute_IV(unused_feature_1[0][1], relation_type, unused_feature_1[0][3], unused_feature_0[0][3])
             data_online.compute_IV(unused_feature_1[1][1], relation_type, unused_feature_1[1][3], unused_feature_0[1][3])
     except Exception,e:
         log.error(str(e))
         print 'unused_feature_IV  error\n'
-
     #计算"平均日通话次数"IV
     try:
         for sql_1, sql_0, relation_type in IV_sql_list:
@@ -342,7 +342,6 @@ if __name__ =='__main__':
     except Exception,e:
         log.error(str(e))
         print 'day_average_call_count_IV  error\n'
-
     #定义特征IV通用计算函数
     def common_feature_iv(table_name, feature_name, bins, user_id = 'user_id'):
         try:
@@ -386,7 +385,7 @@ if __name__ =='__main__':
     common_feature_iv('loginplatforms', 'idcard_loan_platform_num', bins = range(0,31,3), user_id = 'owner_id')
     #计算"身份证贷款次数"IV
     common_feature_iv('loginplatforms', 'idcard_loan_times', bins = range(0,101,10), user_id = 'owner_id')
-    
+    '''
     tk_yufa.commit_and_close()
     data_online.commit_and_close()
     print time.time()-start
