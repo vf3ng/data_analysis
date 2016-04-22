@@ -5,16 +5,16 @@ from compute_feature import *
 feature_bins_dict = {
                         'call_count':range(0,6501,500),
                         'call_time':range(0,420001,30000),
-                        'sustained_days':range(0,241,30),                         
+                        'sustained_days':range(0,181,30),                         
                         'call_count_per_day':range(0,28,3),                         
                         'baidu_home_distance':range(0,72001,6000),                         
                         'baidu_work_distance':range(0,72001,6000),                         
-                        'getui_home_distance':range(0,130001,10000),                         
-                        'getui_work_distance':range(0,130001,10000),                         
-                        'phone_loan_platform_num':range(0,31,3),                         
+                        'getui_home_distance':range(0,100001,10000),                         
+                        'getui_work_distance':range(0,100001,10000),                         
+                        'phone_loan_platform_num':range(0,22,3),                         
                         'phone_loan_times':range(0,101,10),                         
                         'phone_loan_times_per_platform':range(0,7,1),                         
-                        'idcard_loan_platform_num':range(0,31,3), 
+                        'idcard_loan_platform_num':range(0,22,3), 
                         'idcard_loan_times':range(0,101,10), 
                         'idcard_loan_times_per_platform':range(0,7,1) 
                     }
@@ -29,6 +29,9 @@ def get_data(filename):
 
 def fetch_feature_interval_frequency(dataframe, feature_name, bins):
     data = dataframe[feature_name]
+    if data.dtype ==object:
+        data = data[(data!='parents_True')&(data!='Nonesuspect_False')&(data!='parents_None')&(data!='parents_False')]
+    data = data.map(float)
     data = data[data!=-1]
     cut = pd.cut(data, bins, right = False)
     cut = cut.replace(np.nan, '[%s, inf)'%bins[-1])
@@ -46,7 +49,7 @@ if __name__ =='__main__':
     bad_data = get_merge_data('data/f_delay', 'data/f_reject')
     m_data = get_data('data/f_delay')
     not_m_data = get_merge_data('data/f_good','data/f_done')
-
+    
     for feature_name in feature_bins_dict:
         good = fetch_feature_interval_frequency(good_data, feature_name, feature_bins_dict[feature_name])
         bad = fetch_feature_interval_frequency(bad_data, feature_name, feature_bins_dict[feature_name])
@@ -54,7 +57,7 @@ if __name__ =='__main__':
         not_m = fetch_feature_interval_frequency(not_m_data, feature_name, feature_bins_dict[feature_name])
         data_online.compute_IV(feature_name, 'pass_deny', good, bad)
         data_online.compute_IV(feature_name, 'm_not_m', m, not_m)
-
+    
     data_online.commit_and_close()
     print time.time()-start
 
