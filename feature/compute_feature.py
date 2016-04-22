@@ -10,11 +10,6 @@ from datetime import datetime, timedelta
 
 from common import tk_log_client
 
-
-#用来执行插入或者更新的标识   
-insert_or_not = 0
-update_or_not = 0
-
 date = datetime.now().strftime('%Y-%m-%d')
 date_time_start = datetime.now().strftime('%Y-%m-%d 00:00:00')
 date_time_end = (datetime.now()+timedelta(1)).strftime('%Y-%m-%d 00:00:00')
@@ -134,8 +129,6 @@ class DBoperator(object):
         result = pd.value_counts(cut)
         new_index = ['[%s, %s)'%(bins[i],bins[i+1]) if i!=len(bins)-1 else '[%s, inf)'%bins[i] for i in range(len(bins))]
         final_result = result.reindex(new_index).fillna(0)
-        #print feature_name,'  ',data_type,':'
-        #print final_result,'\n'
         return (date, feature_name, data_type, final_result)
 
     def get_unused_time_feature(self, date, id_list, data_type, count_bins, time_bins):
@@ -168,10 +161,6 @@ class DBoperator(object):
             count_cut = ['[%s, inf)'%count_bins[-1] if i!=i else i for i in count_cut]
             time_cut = pd.cut(unused_count, time_bins, right = False)
             time_cut = ['[%s, inf)'%time_bins[-1] if i!=i else i for i in time_cut]
-            #count_cut = np.array(pd.cut(unused_count, count_bins, right = False))
-            #count_cut[np.array([i != i for i in count_cut])] = '[%s, inf)'%count_bins[-1]
-            #time_cut = np.array(pd.cut(unused_time, time_bins, right = False))
-            #time_cut[np.array([i != i for i in time_cut])] = '[%s, inf)'%time_bins[-1]
         else:
             count_cut = pd.cut(array, count_bins, right = False)
             time_cut = pd.cut(array, time_bins, right = False)
@@ -181,10 +170,6 @@ class DBoperator(object):
         final_result_count = result_count.reindex(new_count_index).fillna(0)
         new_time_index = ['[%s, %s)'%(time_bins[i],time_bins[i+1]) if i!=len(time_bins)-1 else '[%s, inf)'%time_bins[i] for i in range(len(time_bins))]
         final_result_time = result_time.reindex(new_time_index).fillna(0)
-        #print 'unused_count    %s : '%data_type
-        #print final_result_count,'\n'
-        #print 'unused_time    %s : '%data_type
-        #print final_result_time,'\n'
         return [(date, 'unused_count', data_type, final_result_count), (date, 'unused_time', data_type, final_result_time)]
 
     def get_day_average_call_count_feature(self, date, id_list, data_type, bins):
@@ -200,8 +185,6 @@ class DBoperator(object):
         new_index = ['[%s, %s)'%(bins[i],bins[i+1]) if i!=len(bins)-1 else '[%s, inf)'%bins[i] for i in range(len(bins))]
         final_result = result.reindex(new_index).fillna(0)
         #final_result = result[sorted(result.index, key = lambda x: int(x.split(',')[0][1:]))]
-        #print 'day_average_call_count    %s : '%data_type
-        #print final_result,'\n'
         return (date, 'day_average_call_count', data_type, final_result)
 
     def insert_into_table(self, feature_data):
@@ -220,19 +203,10 @@ class DBoperator(object):
             sign = 1
         if sign == 0:
             IV = 9.9
-        global insert_or_not, update_or_not
-        if insert_or_not == 1: 
+        if self.cur.execute('select * from feature_iv where feature_name = %s and relation_type = %s',(feature_name, relation_type)) == 0:
             self.cur.execute('insert into feature_iv values(%s,%s,%s)',(feature_name, relation_type, IV))
         else:
-            if update_or_not == 1:
-                self.cur.execute('update feature_iv set iv = %s where feature_name = %s and relation_type = %s',(IV, feature_name, relation_type))
-            else:
-                if self.cur.execute('select * from feature_iv where feature_name = %s and relation_type = %s',(feature_name, relation_type)) == 0:
-                    self.cur.execute('insert into feature_iv values(%s,%s,%s)',(feature_name, relation_type, IV))
-                    insert_or_not = 1
-                else:
-                    self.cur.execute('update feature_iv set iv = %s where feature_name = %s and relation_type = %s',(IV, feature_name, relation_type))
-                    update_or_not = 1
+            self.cur.execute('update feature_iv set iv = %s where feature_name = %s and relation_type = %s',(IV, feature_name, relation_type))
         print 'series_1 :'
         print series_1
         print 'series_0 :'
@@ -251,7 +225,7 @@ if __name__ =='__main__':
 
     tk_yufa = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME1)
     data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
-     
+    
     #计算"关机时长和次数"分布特征
     try:
         for sql, data_type in sql_list:
@@ -281,7 +255,7 @@ if __name__ =='__main__':
         except Exception,e:
             log.error(str(e))
             print '%s  error\n'%feature_name
-
+    
     #计算"通话次数"分布特征
     common_feature('userinfoformine', 'call_count', bins = range(0,6501,500))
     #计算"通话时间"分布特征
@@ -350,7 +324,7 @@ if __name__ =='__main__':
                 id_list_0 = tk_yufa.get_id_list(sql_0)
                 feature_1 = data_online.get_common_feature(date, id_list_1, 'nothing', table_name, feature_name, bins = bins, user_id = user_id)
                 feature_0 = data_online.get_common_feature(date, id_list_0, 'nothing', table_name, feature_name, bins = bins, user_id = user_id)
-                data_online.compute_IV(feature_1[1], relation_type, feature_1[3], feature_0[3])
+                data_online.compute_IV(feature_name, relation_type, feature_1[3], feature_0[3])
         except Exception,e:
             log.error(str(e))
             print '%s_IV  error\n'%feature_name
