@@ -9,7 +9,7 @@ feature_bins_dict = {
                         'call_count_per_day':range(0,28,3),                         
                         'baidu_home_distance':range(0,72001,6000),                         
                         'baidu_work_distance':range(0,72001,6000),                         
-                        'getui_home_distance':range(0,100001,10000),                         
+                        'getui_home_distance':range(0,100001,10000),                                            
                         'getui_work_distance':range(0,100001,10000),                         
                         'phone_loan_platform_num':range(0,22,3),                         
                         'phone_loan_times':range(0,101,10),                         
@@ -19,13 +19,12 @@ feature_bins_dict = {
                         'idcard_loan_times_per_platform':range(0,7,1) 
                     }
 
-def get_merge_data(good_file, done_file):
-    good = pd.read_table(good_file)
-    done = pd.read_table(done_file)
-    return pd.concat([good,done])    
 
-def get_data(filename):
-    return pd.read_table(filename)
+def get_merge_data(*args):
+    datalist=[]
+    for filename in args:
+        datalist.append(pd.read_table(filename))
+    return pd.concat(datalist)    
 
 def fetch_feature_interval_frequency(dataframe, feature_name, bins):
     data = dataframe[feature_name]
@@ -46,17 +45,22 @@ if __name__ =='__main__':
 
     data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)    
     good_data = get_merge_data('data/f_good','data/f_done')
-    bad_data = get_merge_data('data/f_delay', 'data/f_reject')
-    m_data = get_data('data/f_delay')
-    not_m_data = get_merge_data('data/f_good','data/f_done')
+    bad_data = get_merge_data('data/f_delay')
+    pass_data = get_merge_data('data/f_pass')
+    reject_data = get_merge_data('data/f_reject')
+    m_data = get_merge_data('data/f_delay','data/f_done')
+    not_m_data = get_merge_data('data/f_good')
     
     for feature_name in feature_bins_dict:
-        good = fetch_feature_interval_frequency(good_data, feature_name, feature_bins_dict[feature_name])
-        bad = fetch_feature_interval_frequency(bad_data, feature_name, feature_bins_dict[feature_name])
+        Pass = fetch_feature_interval_frequency(pass_data, feature_name, feature_bins_dict[feature_name])
+        reject = fetch_feature_interval_frequency(reject_data, feature_name, feature_bins_dict[feature_name])
         m = fetch_feature_interval_frequency(m_data, feature_name, feature_bins_dict[feature_name])
         not_m = fetch_feature_interval_frequency(not_m_data, feature_name, feature_bins_dict[feature_name])
-        data_online.compute_IV(feature_name, 'pass_deny', good, bad)
+        good = fetch_feature_interval_frequency(good_data, feature_name, feature_bins_dict[feature_name])
+        bad = fetch_feature_interval_frequency(bad_data, feature_name, feature_bins_dict[feature_name])
+        data_online.compute_IV(feature_name, 'pass_reject', Pass, reject)
         data_online.compute_IV(feature_name, 'm_not_m', m, not_m)
+        data_online.compute_IV(feature_name, 'good_bad', good, bad)
     
     data_online.commit_and_close()
     print time.time()-start

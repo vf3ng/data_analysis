@@ -23,12 +23,12 @@ DB_NAME2 = 'data_online'
 sql_apply_id = '''
                 select distinct create_by_id from apply
                 where create_at >= '%s' and create_at < '%s' and status != 'e'
-                '''%(date_time_start, date_time_end)
+                '''%('2015-11-01','2015-11-30')#%(date_time_start, date_time_end)
 
 sql_apply_pass_id = '''
                 select distinct create_by_id from apply
                 where create_at >= '%s' and create_at < '%s' and (status = 'a' or status = 'y')
-                    '''%(date_time_start, date_time_end)
+                    '''%('2015-11-01','2015-11-30')#%(date_time_start, date_time_end)
 
 sql_m0_id = '''
             select distinct create_by_id from apply
@@ -61,7 +61,7 @@ sql_apply_pass_id_iv = '''
                         where create_at >= '%s' and create_at < '%s' and (status = 'a' or status = 'y')
                        '''%('2015-11-01 00:00:00', '2015-12-30 00:00:00')
 
-sql_apply_deny_id_iv = '''
+sql_apply_reject_id_iv = '''
                         select distinct create_by_id from apply
                         where create_at >= '%s' and create_at < '%s' and status != 'e' and create_by_id not in (%s)
                        '''%('2015-11-01 00:00:00', '2015-12-30 00:00:00', sql_apply_pass_id)
@@ -78,10 +78,21 @@ sql_m_id_iv = '''
                where type in ('a','b','c','d','e')
               '''
 
+sql_good_iv = '''
+                select distinct user_id from repaymentinfo
+                where user_id not in
+                (select distinct create_by_id from apply
+                where type in ('a','b','c','d','e') and status != '8')
+              '''
+
+sql_bad_iv = '''
+                select distinct create_by_id from apply
+                where type in ('a','b','c','d','e') and status != '8'
+             '''
 
 sql_list = [(sql_apply_id, 'apply'),(sql_apply_pass_id,'apply_pass'),(sql_m0_id,'m0'),(sql_m1_id,'m1'),(sql_m2_id,'m2'),(sql_m3_id,'m3'),(sql_m4_id,'m4')]
 
-IV_sql_list = [(sql_apply_pass_id_iv, sql_apply_deny_id_iv, 'pass_deny'),(sql_not_m_id_iv, sql_m_id_iv, 'm_not_m')]
+IV_sql_list = [(sql_apply_pass_id_iv, sql_apply_reject_id_iv, 'pass_reject'),(sql_not_m_id_iv, sql_m_id_iv, 'm_not_m'),(sql_good_iv, sql_bad_iv, 'good_bad')]
 
 
 class DBoperator(object):
@@ -185,7 +196,7 @@ class DBoperator(object):
         new_index = ['[%s, %s)'%(bins[i],bins[i+1]) if i!=len(bins)-1 else '[%s, inf)'%bins[i] for i in range(len(bins))]
         final_result = result.reindex(new_index).fillna(0)
         #final_result = result[sorted(result.index, key = lambda x: int(x.split(',')[0][1:]))]
-        return (date, 'day_average_call_count', data_type, final_result)
+        return (date, 'call_count_per_day', data_type, final_result)
 
     def insert_into_table(self, feature_data):
         for i in range(len(feature_data[3])):
@@ -225,7 +236,7 @@ if __name__ =='__main__':
 
     tk_yufa = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME1)
     data_online = DBoperator(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME2)
-    
+        
     #计算"关机时长和次数"分布特征
     try:
         for sql, data_type in sql_list:
@@ -316,6 +327,7 @@ if __name__ =='__main__':
     except Exception,e:
         log.error(str(e))
         print 'day_average_call_count_IV  error\n'
+    
     #定义特征IV通用计算函数
     def common_feature_iv(table_name, feature_name, bins, user_id = 'user_id'):
         try:
@@ -336,13 +348,13 @@ if __name__ =='__main__':
     #计算"手机使用天数"IV
     common_feature_iv('userinfoformine', 'sustained_days', bins = range(0,241,30))
     #计算"订单次数"IV
-    common_feature_iv('ebusiness_feature', 'total_order_count', bins = range(0,481,60))
+    common_feature_iv('ebusiness_feature', 'total_order_count', bins = range(0,301,60))  #range(0,481,60)
     #计算"订单金额"IV
-    common_feature_iv('ebusiness_feature', 'total_price', bins = range(0,36001,3000))
+    common_feature_iv('ebusiness_feature', 'total_price', bins = range(0,36001,3000)) 
     #计算"使用天数"IV
-    common_feature_iv('ebusiness_feature', 'used_days',bins = range(0,2601,200))
+    common_feature_iv('ebusiness_feature', 'used_days',bins = range(0,1001,200)+[1400,1600,1800,2400,2600])   #range(0,2601,200)
     #计算"日均消费金额"IV
-    common_feature_iv('ebusiness_feature', 'price_per_day',bins = range(0,81,8))
+    common_feature_iv('ebusiness_feature', 'price_per_day',bins = range(0,25,8))   #range(0,81,8)
     #计算"个推家庭地址距离"IV
     common_feature_iv('getuiresult', 'home_offset', bins = range(0,130001,10000), user_id = 'owner_id')
     #计算"个推工作地址距离"IV
