@@ -2,6 +2,7 @@
 
 from compute_feature import *
 
+#计算IV值用的区间可能和Bi展示用的区间不一致，因为数据量的问题计算IV时有时会合并一些区间
 feature_bins_dict = {
                         'call_count':range(0,6501,500),
                         'call_time':range(0,420001,30000),

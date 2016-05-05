@@ -23,12 +23,12 @@ DB_NAME2 = 'data_online'
 sql_apply_id = '''
                 select distinct create_by_id from apply
                 where create_at >= '%s' and create_at < '%s' and status != 'e'
-                '''%('2015-11-01','2015-11-30')#%(date_time_start, date_time_end)
+                '''%(date_time_start, date_time_end)
 
 sql_apply_pass_id = '''
                 select distinct create_by_id from apply
                 where create_at >= '%s' and create_at < '%s' and (status = 'a' or status = 'y')
-                    '''%('2015-11-01','2015-11-30')#%(date_time_start, date_time_end)
+                    '''%(date_time_start, date_time_end)
 
 sql_m0_id = '''
             select distinct create_by_id from apply
@@ -301,6 +301,7 @@ if __name__ =='__main__':
     '''
     特征的IV值不需要每日计算，
     需要计算时，再进行如下函数的调用。
+    计算IV时会因为数据的区间分布做区间调整，因此，区间的划分与Bi展示的区间可能有区别。
     '''
     
     '''

@@ -29,7 +29,7 @@ if __name__=='__main__':
     feature_index = get_feature_index(range(0,13,2))
     insert_into_table(u'通话特征', 'unused_count', u'关机次数', feature_index)
 
-    feature_index = get_feature_index(range(0,57,7))
+    feature_index = get_feature_index(range(0,8,1))
     insert_into_table(u'通话特征', 'unused_time', u'关机时长', feature_index)
     
     feature_index = get_feature_index(range(0,49,6))

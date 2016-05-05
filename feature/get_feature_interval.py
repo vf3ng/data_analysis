@@ -100,7 +100,6 @@ def my_sort_index(series):
 
 if __name__ == '__main__':
 
-    
     #通话特征
     get_interval('userinfoformine', 'call_count', bins = range(0,6501,500))
     get_interval('userinfoformine', 'call_time', bins = range(0,420001,30000))
