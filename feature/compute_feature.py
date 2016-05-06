@@ -140,6 +140,8 @@ class DBoperator(object):
         result = pd.value_counts(cut)
         new_index = ['[%s, %s)'%(bins[i],bins[i+1]) if i!=len(bins)-1 else '[%s, inf)'%bins[i] for i in range(len(bins))]
         final_result = result.reindex(new_index).fillna(0)
+        print feature_name,':'
+        print final_result
         return (date, feature_name, data_type, final_result)
 
     def get_unused_time_feature(self, date, id_list, data_type, count_bins, time_bins):
