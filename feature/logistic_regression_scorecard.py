@@ -89,8 +89,7 @@ pass_reject_data['idcard_loan_times_per_platform_woe'] = pass_reject_data['idcar
 
 lr = LR()
 
-def get_logistic_func(X, y):
-    lr.fit(X, y)
+def get_logistic_func(lr):
     def logistic_func(*args):
         return 1/(1+np.exp(-(lr.intercept_[0] + (lr.coef_.ravel()*np.array(args)).sum())))
     return logistic_func
@@ -100,48 +99,64 @@ def get_scorecard(logistic_func, b = 500 , o = 1, p = 20):
         return p/np.log(2)*np.log(logistic_func(*args)/(1-logistic_func(*args)))-p*np.log(o)/np.log(2)+b
     return scorecard
 
+
 if __name__ == '__main__':
     
     #平测模型的好坏（类似交叉验证）
     test_result = []
+    X_all = np.array(good_bad_data[['call_count_per_day_woe', 'phone_loan_times_per_platform_woe', 'idcard_loan_platform_num_woe', 'idcard_loan_times_per_platform_woe']])
+    y_all = np.array(good_bad_data['y'])
     for i in range(10):
         num = int(len(good_bad_data)*0.7)
         random_index = np.random.permutation(len(good_bad_data))    
         build_index = random_index[:num]
         test_index = random_index[num:]
-        X = np.array(good_bad_data[['call_count_per_day_woe', 'phone_loan_times_per_platform_woe', 'idcard_loan_platform_num_woe', 'idcard_loan_times_per_platform_woe']].iloc[build_index])
-        y = np.array(good_bad_data['y'].iloc[build_index])
-        X_test = np.array(good_bad_data[['call_count_per_day_woe', 'phone_loan_times_per_platform_woe', 'idcard_loan_platform_num_woe', 'idcard_loan_times_per_platform_woe']].iloc[test_index])
-        y_test = np.array(good_bad_data['y'].iloc[test_index])
-        logistic_func = get_logistic_func(X, y)
+        X = X_all[build_index]
+        y = y_all[build_index]
+        X_test = X_all[test_index]
+        y_test = y_all[test_index]
+        lr.fit(X,y)
+        logistic_func = get_logistic_func(lr)
         test_result.append([lr.score(X,y),lr.score(X_test,y_test)])
+    lr.fit(X_all,y_all)
     print np.array(test_result).mean(axis=0),lr.coef_
 
     #平测模型的好坏
     test_result = []
+    X1_all = np.array(pass_reject_data[['call_count_per_day_woe', 'phone_loan_times_per_platform_woe', 'idcard_loan_platform_num_woe', 'idcard_loan_times_per_platform_woe']])
+    y1_all = np.array(pass_reject_data['y'])
     for i in range(10):
         num = int(len(pass_reject_data)*0.7)
         random_index = np.random.permutation(len(pass_reject_data))
         build_index = random_index[:num]
         test_index = random_index[num:]
-        X1 = np.array(pass_reject_data[['call_count_per_day_woe', 'phone_loan_times_per_platform_woe', 'idcard_loan_platform_num_woe', 'idcard_loan_times_per_platform_woe']].iloc[build_index])
-        y1 = np.array(pass_reject_data['y'].iloc[build_index])
-        X1_test = np.array(pass_reject_data[['call_count_per_day_woe', 'phone_loan_times_per_platform_woe', 'idcard_loan_platform_num_woe', 'idcard_loan_times_per_platform_woe']].iloc[test_index])
-        y1_test = np.array(pass_reject_data['y'].iloc[test_index])
-        logistic_func = get_logistic_func(X1, y1)
+        X1 = X1_all[build_index]
+        y1 = y1_all[build_index]
+        X1_test = X1_all[test_index]
+        y1_test = y1_all[test_index]
+        lr.fit(X1,y1)
+        logistic_func = get_logistic_func(lr)
         test_result.append([lr.score(X,y),lr.score(X_test,y_test)])
+    lr.fit(X1_all,y1_all)
     print np.array(test_result).mean(axis=0),lr.coef_
-
     
+         
     #观察评分卡函数效果(pass_reject)
     X_all = np.array(pass_reject_data[['call_count_per_day_woe', 'phone_loan_times_per_platform_woe', 'idcard_loan_platform_num_woe', 'idcard_loan_times_per_platform_woe']])
     y_all = np.array(pass_reject_data['y'])
-    logistic_func = get_logistic_func(X_all, y_all)
+    lr.fit(X_all,y_all)    
+    #将训练好的lr永久存储起来，以后直接读取，不用再次训练
+    a = open('lr','wb')
+    import pickle
+    pickle.dump(lr,a)
+    a.close()
+
+    logistic_func = get_logistic_func(lr)
     scorecard = get_scorecard(logistic_func)
     score = []
     for i in np.random.permutation(len(X_all)):
         score.append((int(scorecard(*X_all[i])),y_all[i]))
-    print score
+    #print score
     
 
     '''
