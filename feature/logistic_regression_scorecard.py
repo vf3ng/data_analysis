@@ -1,6 +1,9 @@
 #-*-coding: utf-8-*-
 
 from sklearn.linear_model import LogisticRegression as LR
+from sklearn.metrics import precision_recall_curve, auc, roc_curve, f1_score
+from sklearn.naive_bayes import MultinomialNB,GaussianNB
+from sklearn import svm
 
 from compute_iv_from_datafile import *
 
@@ -88,6 +91,9 @@ pass_reject_data['idcard_loan_times_per_platform_woe'] = pass_reject_data['idcar
 
 
 lr = LR()
+clf1 = MultinomialNB()
+clf2 = GaussianNB()
+clf3 = svm.SVC(C = 10000)
 
 def get_logistic_func(lr):
     def logistic_func(*args):
@@ -99,11 +105,33 @@ def get_scorecard(logistic_func, b = 500 , o = 1, p = 20):
         return p/np.log(2)*np.log(logistic_func(*args)/(1-logistic_func(*args)))-p*np.log(o)/np.log(2)+b
     return scorecard
 
+def compute_KS(bin_num, score_list, y_value):
+    score = score_list[:]
+    score.sort()
+    cut = int(len(score)/bin_num)
+    bins = [score[i*cut] for i in range(bin_num)]+[score[-1]+1]
+    print bins
+    score_True = []
+    score_False = []
+    for i in range(len(y_value)):
+        if y_value[i] == 1:
+            score_True.append(score_list[i])
+        else:
+            score_False.append(score_list[i])
+    new_index = ['[%s, %s)'%(bins[i],bins[i+1]) for i in range(len(bins)-1)]
+    True_des = pd.value_counts(pd.cut(score_True, bins, right = False)).reindex(new_index)
+    False_des = pd.value_counts(pd.cut(score_False, bins, right = False)).reindex(new_index)
+    True_des = True_des.cumsum()/True_des.sum()
+    False_des = False_des.cumsum()/False_des.sum()
+    KS = (True_des - False_des).abs().max()
+    return KS
+    
 
 if __name__ == '__main__':
     
     #平测模型的好坏（类似交叉验证）
     test_result = []
+    auc_result = []
     X_all = np.array(good_bad_data[['call_count_per_day_woe', 'phone_loan_times_per_platform_woe', 'idcard_loan_platform_num_woe', 'idcard_loan_times_per_platform_woe']])
     y_all = np.array(good_bad_data['y'])
     for i in range(10):
@@ -115,11 +143,19 @@ if __name__ == '__main__':
         y = y_all[build_index]
         X_test = X_all[test_index]
         y_test = y_all[test_index]
+        #用逻辑回归
         lr.fit(X,y)
-        logistic_func = get_logistic_func(lr)
-        test_result.append([lr.score(X,y),lr.score(X_test,y_test)])
-    lr.fit(X_all,y_all)
-    print np.array(test_result).mean(axis=0),lr.coef_
+        y_score = lr.predict_proba(X_test)
+        fpr, tpr, t = roc_curve(y_test, y_score[:,1])
+        #用朴素贝叶斯分类
+        clf2.fit(X,y)
+        y_score = clf2.predict_proba(X_test)
+        p, r, t = precision_recall_curve(y_test, y_score[:,1])
+        #用支持向量机
+        clf3.fit(X,y)
+        test_result.append([lr.score(X,y),lr.score(X_test,y_test),clf2.score(X_test,y_test),auc(r,p),auc(fpr,tpr),clf3.score(X,y),clf3.score(X_test,y_test)])
+    print np.array(test_result).mean(axis=0)
+    
 
     #平测模型的好坏
     test_result = []
@@ -135,7 +171,6 @@ if __name__ == '__main__':
         X1_test = X1_all[test_index]
         y1_test = y1_all[test_index]
         lr.fit(X1,y1)
-        logistic_func = get_logistic_func(lr)
         test_result.append([lr.score(X,y),lr.score(X_test,y_test)])
     lr.fit(X1_all,y1_all)
     print np.array(test_result).mean(axis=0),lr.coef_
@@ -155,8 +190,8 @@ if __name__ == '__main__':
     scorecard = get_scorecard(logistic_func)
     score = []
     for i in np.random.permutation(len(X_all)):
-        score.append((int(scorecard(*X_all[i])),y_all[i]))
-    #print score
+        score.append(int(scorecard(*X_all[i])))
+    print compute_KS(4, score, y_all)
     
 
     '''
